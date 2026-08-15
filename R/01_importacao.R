@@ -30,8 +30,7 @@ arquivo_dicionario <- conteudo_zip %>%
     str_detect(
       Name,
       ".*Dicionário_arquivos_variáveis_microdados_Enamed_2025\\.xlsx$"
-    ),
-    !str_detect(basename(Name), "^~\\$")
+    ),!str_detect(basename(Name), "^~\\$")
   )
 #Extraindo somente xls dos arquivos zipados.
 
@@ -99,3 +98,18 @@ arq3_limpo <- arq3 %>%
 
 arq3_validos <- arq3_limpo %>%
   filter(TP_PRES == 555)
+
+curso_info <- arq1 %>%
+  select(
+    CO_CURSO,
+    CO_IES,
+    CO_CATEGAD,
+    CO_ORGACAD,
+    CO_MUNIC_CURSO,
+    CO_UF_CURSO,
+    CO_REGIAO_CURSO
+  ) %>%
+  distinct()
+
+enamed <- arq3_validos %>%
+  left_join(curso_info, by = "CO_CURSO", relationship = "many-to-one")
