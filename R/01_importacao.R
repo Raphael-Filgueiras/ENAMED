@@ -30,7 +30,8 @@ arquivo_dicionario <- conteudo_zip %>%
     str_detect(
       Name,
       ".*Dicionário_arquivos_variáveis_microdados_Enamed_2025\\.xlsx$"
-    ),!str_detect(basename(Name), "^~\\$")
+    ),
+    !str_detect(basename(Name), "^~\\$")
   )
 #Extraindo somente xls dos arquivos zipados.
 
@@ -98,7 +99,7 @@ arq3_limpo <- arq3 %>%
 
 arq3_validos <- arq3_limpo %>%
   filter(TP_PRES == 555)
-
+#Informações sobre os cursos sem repetição
 curso_info <- arq1 %>%
   select(
     CO_CURSO,
@@ -110,6 +111,27 @@ curso_info <- arq1 %>%
     CO_REGIAO_CURSO
   ) %>%
   distinct()
-
+#Fazendo link do desempenho com as informações dos cursos
 enamed <- arq3_validos %>%
   left_join(curso_info, by = "CO_CURSO", relationship = "many-to-one")
+
+enamed <- enamed %>%
+  mutate(
+    categoria_adm = case_when(
+      CO_CATEGAD == 1 ~ "Pública Federal",
+      CO_CATEGAD == 2 ~ "Pública Estadual",
+      CO_CATEGAD == 3 ~ "Pública Municipal",
+      CO_CATEGAD == 4 ~ "Privada com fins Lucrativos",
+      CO_CATEGAD == 5 ~ "Privada sem fins lucrativos",
+      CO_CATEGAD == 7 ~ "Especial",
+      CO_CATEGAD == 8 ~ "Comunitária/Confessional",
+      TRUE ~ NA_character_
+    ),
+    rede = case_when(
+      CO_CATEGAD %in% c(1, 2, 3) ~ "Pública",
+      CO_CATEGAD %in% c(4, 5, 8) ~ "Privada",
+      CO_CATEGAD == 7 ~ "Especial",
+      TRUE ~ NA_character_
+    )
+  )
+saveRDS(enamed, "dados/processados/enamed.rds")
