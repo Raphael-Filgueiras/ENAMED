@@ -114,7 +114,7 @@ curso_info <- arq1 %>%
 #Fazendo link do desempenho com as informações dos cursos
 enamed <- arq3_validos %>%
   left_join(curso_info, by = "CO_CURSO", relationship = "many-to-one")
-
+# Criando categorias com nome legível , e agrupando por rede. 
 enamed <- enamed %>%
   mutate(
     categoria_adm = case_when(
@@ -134,4 +134,5 @@ enamed <- enamed %>%
       TRUE ~ NA_character_
     )
   )
+#Salvando o dataframe ENAMED já classificado
 saveRDS(enamed, "dados/processados/enamed.rds")
