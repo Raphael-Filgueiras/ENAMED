@@ -4,6 +4,7 @@
 
 library(tidyverse)
 library(ggplot2)
+library(ggrepel)
 
 enamed <- readRDS("dados/processados/enamed.rds")
 
@@ -151,6 +152,133 @@ comparacao_cortes_grafico %>%
 # ----------------------------------------------------------------
 # 2. Distribuição por estado
 # ----------------------------------------------------------------
+
+# Proporção abaixo do P10 nacional da rede pública por UF e rede
+baixo_desempenho_estado <- enamed_rede %>%
+  group_by(UF, rede) %>%
+  summarise(
+    n = n(),
+    n_abaixo_p10_publica = sum(NT_GER <= cortes_publica$p10),
+    prop_abaixo_p10_publica = mean(NT_GER <= cortes_publica$p10),
+    .groups = "drop"
+  )
+
+comparacao_baixo_estado <- baixo_desempenho_estado %>%
+  select(UF, rede, n, prop_abaixo_p10_publica) %>%
+  pivot_wider(names_from = rede,
+              values_from = c(n, prop_abaixo_p10_publica))
+
+comparacao_redes_estado <- comparacao_baixo_estado %>%
+  drop_na(prop_abaixo_p10_publica_Privada,
+          prop_abaixo_p10_publica_Pública) %>%
+  mutate(
+    diferenca_pp =
+      prop_abaixo_p10_publica_Privada -
+      prop_abaixo_p10_publica_Pública,
+    
+    razao_prevalencia =
+      prop_abaixo_p10_publica_Privada /
+      prop_abaixo_p10_publica_Pública,
+    n_menor_rede =
+      pmin(n_Privada, n_Pública)
+  ) %>%
+  arrange(desc(diferenca_pp))
+
+# Referências nacionais para o corte no P10 da rede pública
+ref_p10_publica <- comparacao_cortes_cruzados %>%
+  filter(rede == "Pública") %>%
+  pull(prop_abaixo_p10_publica)
+
+ref_p10_privada <- comparacao_cortes_cruzados %>%
+  filter(rede == "Privada") %>%
+  pull(prop_abaixo_p10_publica)
+
+comparacao_redes_estado <- comparacao_redes_estado %>%
+  mutate(
+    situacao = case_when(
+      prop_abaixo_p10_publica_Pública <= ref_p10_publica &
+        prop_abaixo_p10_publica_Privada <= ref_p10_privada ~
+        "Ambas melhores que a referência",
+      
+      prop_abaixo_p10_publica_Pública <= ref_p10_publica &
+        prop_abaixo_p10_publica_Privada > ref_p10_privada ~
+        "Pública melhor / Privada pior",
+      
+      prop_abaixo_p10_publica_Pública > ref_p10_publica &
+        prop_abaixo_p10_publica_Privada <= ref_p10_privada ~
+        "Pública pior / Privada melhor",
+      
+      TRUE ~
+        "Ambas piores que a referência"
+    )
+  )
+ggplot(comparacao_redes_estado, aes(x = reorder(UF, diferenca_pp), y = diferenca_pp)) +
+  geom_col() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_text(aes(label = scales::percent(diferenca_pp, accuracy = 0.1)),
+            hjust = -0.1,
+            size = 3) +
+  coord_flip() +
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
+                     expand = expansion(mult = c(0, .12))) +
+  labs(
+    title = "Diferença de Proporção de baixo desempenho por estado",
+    subtitle = "Rede privada menos rede pública - corte no p10 nacional da rede pública",
+    x = "UF",
+    y = "Diferença em pontos Percentuais",
+    caption = "Valores positivos indicam maior proporção de participantes da rede privada abaixo do P10 nacional da rede pública."
+  ) + theme_minimal()
+
+ggplot(
+  comparacao_redes_estado,
+  aes(x = prop_abaixo_p10_publica_Pública, y = prop_abaixo_p10_publica_Privada)
+) +
+  geom_point(aes(color = situacao), size = 2) +
+  geom_label_repel(aes(label = UF),
+                   size = 3,
+                   min.segment.length = 0) +
+  geom_abline(intercept = 0,
+              slope = 1,
+              linetype = "dashed") +
+  geom_vline(xintercept = ref_p10_publica, linetype = "dashed") +
+  geom_hline(yintercept = ref_p10_privada, linetype = "dashed") +
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1)) +
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+  coord_equal(xlim = c(0, 0.60), ylim = c(0, 0.60)) +
+  labs(
+    title = "Participantes abaixo do P10 da rede pública nacional por UF",
+    subtitle = paste(
+      "Comparação das redes pública e privada com suas respectivas",
+      "proporções nacionais, usando a mesma nota de corte"
+    ),
+    x = "Rede Pública na UF \n(% abaixo da P10 público nacional)",
+    y = "Rede Privada na UF \n(% abaixo da P10 público nacional)",
+    color = "Desempenho em relação\nà referência nacional",
+    caption = paste(
+      "Linha diagonal: igualdade entre as redes pública e privada na UF.",
+      "Linhas vertical e horizontal: referências nacionais das respectivas redes.",
+      "Menores proporções indicam menor concentração de participantes abaixo do corte."
+    )
+  ) +
+  annotate(
+    "label",
+    x = 0.43,
+    y = 0.455,
+    label = "Pública melhor",
+    angle = 45,
+    size = 3,
+    linewidth = 0
+  ) +
+  annotate(
+    "label",
+    x = 0.455,
+    y = 0.43,
+    label = "Privada melhor",
+    angle = 45,
+    size = 3,
+    linewidth = 0
+  )+
+theme_minimal()
 
 # Pública x Privada por UF
 # diferenças de média
