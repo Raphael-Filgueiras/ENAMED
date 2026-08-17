@@ -15,24 +15,7 @@ resumo_rede <- enamed %>%
     maximo =  max(NT_GER),
     .groups = "drop"
   )
-# Tabela de correspondência entre código IBGE da UF e sigla
-ufs <- tibble(
-  CO_UF_CURSO= c(
-    11, 12, 13, 14, 15, 16, 17, 21, 
-    22, 23, 24, 25, 26, 27, 28, 29,
-    31, 32, 33, 35, 41, 42, 43, 50, 
-    51, 52, 53
-  ),
-  UF=c(
-    "RO", "AC", "AM", "RR", "PA", "AP", "TO",
-    "MA", "PI", "CE", "RN", "PB", "PE", "AL", 
-    "SE", "BA", "MG", "ES", "RJ", "SP", "PR", 
-    "SC", "RS", "MS", "MT", "GO", "DF"
-  )
-)
 
-enamed <- enamed %>%
-  left_join(ufs, by = "CO_UF_CURSO", relationship = "many-to-one")
 # Estatísticas com cursos agrupados por ESTADO e Rede
 resumo_estado_rede <- enamed %>%
   group_by(UF, rede) %>%
