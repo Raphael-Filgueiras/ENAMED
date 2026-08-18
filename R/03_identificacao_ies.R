@@ -47,6 +47,18 @@ cadastro_ies <- ies_censo %>%
     TP_CATEGORIA_ADMINISTRATIVA
   )
 
+cadastro_ies <- cadastro_ies %>%
+  mutate(
+    SG_IES = case_when(
+      CO_IES == 5215  & is.na(SG_IES) ~ "UNIFIPA",
+      CO_IES == 23454 & is.na(SG_IES) ~ "IMEPAC",
+      CO_IES == 2132  & is.na(SG_IES) ~ "UNINORTE",
+      CO_IES == 1420  & is.na(SG_IES) ~ "UNIFADRA",
+      TRUE ~ SG_IES
+    )
+  )
+saveRDS(cadastro_ies,file = "dados/processados/cadastro_ies.rds")
+
 enamed <- readRDS("dados/processados/enamed.rds")
 
 ies_enamed <- enamed %>%  distinct(CO_IES)

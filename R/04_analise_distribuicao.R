@@ -280,28 +280,3 @@ ggplot(
   )+
 theme_minimal()
 
-# Pública x Privada por UF
-# diferenças de média
-# medianas
-# caudas da distribuição
-
-
-# ----------------------------------------------------------------
-# 3. Alunos de baixo desempenho
-# ----------------------------------------------------------------
-
-# definição do critério
-# proporção por rede
-# proporção por UF
-# proporção por curso
-# proporção por IES
-
-
-# ----------------------------------------------------------------
-# 4. Distribuição por IES
-# ----------------------------------------------------------------
-
-# instituições com maior/menor desempenho
-# cauda inferior
-# tamanho da IES
-# heterogeneidade entre cursos
