@@ -1,4 +1,6 @@
 
+
+
 # ================================================================
 # 05 - ANÁLISE POR INSTITUIÇÃO DE ENSINO SUPERIOR
 # ================================================================
@@ -644,3 +646,199 @@ pontos_concentracao <- tibble(alvo = c(.10, .20, .30, .50)) %>%
       ),
     by = "ordem"
   )
+
+# ----------------------------------------------------------------
+# Comparação das distribuições de notas entre IES e uma rede
+# ----------------------------------------------------------------
+
+siglas_ies_escolhidas <- c("UFF", "USP")
+
+# Preencher somente quando alguma sigla for ambígua.
+# Caso contrário, deixar c().
+codigos_desambiguacao <- c(UNESC = 1559)
+
+rede_referencia <- "Privada"
+
+
+# Cadastro das IES disponíveis para seleção
+
+cadastro_selecao_ies <- enamed_ies %>%
+  distinct(CO_IES, NO_IES, SG_IES, rede)
+
+
+# Valida a rede de referência
+
+if (!rede_referencia %in% unique(enamed_ies$rede)) {
+  stop(paste0("ERRO: rede de referência não encontrada: ", rede_referencia))
+}
+
+
+# Verifica se todas as siglas informadas existem
+
+siglas_nao_encontradas <- setdiff(siglas_ies_escolhidas, cadastro_selecao_ies$SG_IES)
+
+if (length(siglas_nao_encontradas) > 0) {
+  stop(paste0(
+    "ERRO: sigla(s) não encontrada(s): ",
+    paste(siglas_nao_encontradas, collapse = ", ")
+  ))
+}
+
+
+# Localiza todas as IES correspondentes às siglas escolhidas
+
+ies_candidatas <- cadastro_selecao_ies %>%
+  filter(SG_IES %in% siglas_ies_escolhidas)
+
+
+# Identifica siglas que pertencem a mais de uma IES
+
+siglas_ambiguas <- ies_candidatas %>%
+  count(SG_IES) %>%
+  filter(n > 1) %>%
+  pull(SG_IES)
+
+
+# Verifica se foi informado CO_IES para todas as siglas ambíguas
+
+siglas_sem_codigo <- setdiff(siglas_ambiguas, names(codigos_desambiguacao))
+
+if (length(siglas_sem_codigo) > 0) {
+  stop(
+    paste0(
+      "ERRO: a(s) sigla(s) ",
+      paste(siglas_sem_codigo, collapse = ", "),
+      " identifica(m) mais de uma IES. ",
+      "Informe o CO_IES em codigos_desambiguacao."
+    )
+  )
+}
+
+
+# Aplica o CO_IES somente às siglas ambíguas
+
+if (length(siglas_ambiguas) > 0) {
+  ies_escolhidas <- ies_candidatas %>%
+    filter(!SG_IES %in% siglas_ambiguas |
+             CO_IES ==
+             unname(codigos_desambiguacao[SG_IES]))
+  
+} else {
+  ies_escolhidas <- ies_candidatas
+}
+
+
+# Verifica se os códigos informados são válidos
+
+siglas_codigo_invalido <- setdiff(siglas_ambiguas, ies_escolhidas$SG_IES)
+
+if (length(siglas_codigo_invalido) > 0) {
+  stop(paste0(
+    "ERRO: CO_IES inválido para a(s) sigla(s): ",
+    paste(siglas_codigo_invalido, collapse = ", ")
+  ))
+}
+
+
+# Cria os nomes que aparecerão no gráfico
+
+ies_escolhidas <- ies_escolhidas %>%
+  mutate(grupo = if_else(
+    SG_IES %in% siglas_ambiguas,
+    paste0(SG_IES, " (", CO_IES, ")"),
+    SG_IES
+  ))
+
+
+# Códigos das IES escolhidas que pertencem à rede de referência
+
+codigos_excluir_referencia <- ies_escolhidas %>%
+  filter(rede == rede_referencia) %>%
+  pull(CO_IES)
+
+
+# Define o nome da curva da rede de referência
+
+if (length(codigos_excluir_referencia) > 0) {
+  rotulo_referencia <- paste0("Demais IES da rede ", rede_referencia)
+  
+} else {
+  rotulo_referencia <- paste0("IES da rede ", rede_referencia)
+}
+
+
+# Dados das IES escolhidas
+
+dados_ies_escolhidas <- enamed_ies %>%
+  inner_join(ies_escolhidas %>%
+               select(CO_IES, grupo),
+             by = "CO_IES",
+             relationship = "many-to-one") %>%
+  transmute(NT_GER, grupo)
+
+
+# Dados da rede de referência
+
+dados_rede_referencia <- enamed_ies %>%
+  filter(rede == rede_referencia,!CO_IES %in% codigos_excluir_referencia) %>%
+  transmute(NT_GER, grupo = rotulo_referencia)
+
+
+# Junta as IES selecionadas com a rede de referência
+
+dados_densidade_comparacao <- bind_rows(dados_ies_escolhidas, dados_rede_referencia)
+
+
+pontos_corte_densidade <- dados_densidade_comparacao %>%
+  group_by(grupo) %>%
+  summarise(prop_proficientes = mean(NT_GER >= 60),
+            .groups = "drop")
+
+# As curvas de densidade são normalizadas para área total igual a 1.
+# A altura representa concentração relativa das notas,
+# e não o número absoluto de participantes.
+
+dados_densidade_comparacao %>%
+  ggplot(aes(x = NT_GER, color = grupo)) +
+  stat_ecdf(aes(y = after_stat(1 - y)), linewidth = 1) +
+  geom_vline(xintercept = 60, linetype = "dashed") +
+  geom_point(
+    data = pontos_corte_densidade,
+    aes(x = 60, y = prop_proficientes, color = grupo),
+    size = 2.5,
+    show.legend = FALSE
+  ) +
+  scale_x_continuous(breaks = seq(20, 100, 10)) +
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .10),
+    limits = c(0, 1)
+  ) +
+  labs(
+    title = "Proporção de concluintes acima de cada nota",
+    subtitle = paste0("Comparação com a rede ", rede_referencia, " — ENAMED 2025"),
+    x = "Nota geral",
+    y = "Proporção de concluintes acima da nota",
+    color = NULL,
+    caption = "Linha tracejada: corte de proficiência = 60."
+  ) +
+  theme_minimal()
+
+# As curvas de densidade são normalizadas para área total igual a 1.
+# A altura representa concentração relativa das notas,
+# e não o número absoluto de participantes.
+
+dados_densidade_comparacao %>%
+  ggplot(aes(x = NT_GER, color = grupo, fill = grupo)) +
+  geom_density(alpha = .15, linewidth = 1) +
+  geom_vline(xintercept = 60, linetype = "dashed") +
+  labs(
+    title = "Distribuição das notas das IES selecionadas",
+    subtitle = paste0("Comparação com a rede ", rede_referencia, " — ENAMED 2025"),
+    x = "Nota geral",
+    y = "Densidade",
+    color = NULL,
+    fill = NULL,
+    caption = "Linha tracejada: corte de proficiência = 60."
+  ) +
+  theme_minimal()
