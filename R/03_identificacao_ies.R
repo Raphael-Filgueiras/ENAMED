@@ -54,6 +54,7 @@ cadastro_ies <- cadastro_ies %>%
       CO_IES == 23454 & is.na(SG_IES) ~ "IMEPAC",
       CO_IES == 2132  & is.na(SG_IES) ~ "UNINORTE",
       CO_IES == 1420  & is.na(SG_IES) ~ "UNIFADRA",
+      CO_IES == 1854  & is.na(SG_IES) ~ "CLARETIANO",
       TRUE ~ SG_IES
     )
   )
