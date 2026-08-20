@@ -1,5 +1,5 @@
 library(tidyverse)
-
+source("R/00_estilo_grafico.R")
 enamed <- read_rds("dados/processados/enamed.rds")
 # Resumo de desempenho por rede administrativa
 resumo_rede <- enamed %>%
@@ -63,17 +63,45 @@ comparacao_estado_rede <- comparacao_estado_rede %>%
 
 #Gáfico de barras comparando a difernça entre as médias das Pulbicas e privadas.
 comparacao_estado_rede %>%
-  ggplot(aes(x = reorder(UF, diferenca), y = diferenca)) +
-  geom_col() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_text(aes(label = round(diferenca, 1)), hjust = -0.2) +
+  ggplot(aes(
+    x = reorder(UF, diferenca),
+    y = diferenca,
+    fill = if_else(diferenca >= 0, "Pública", "Privada")
+  )) +
+  
+  geom_col(width = .72) +
+  
+  geom_hline(
+    yintercept = 0,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  geom_text(aes(
+    label = round(diferenca, 1),
+    hjust = if_else(diferenca >= 0, -.15, 1.15)
+  ), size = 3) +
+  
   coord_flip() +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(expand = expansion(mult = c(.12, .12))) +
+  
   labs(
     title = "Diferença da nota média do ENAMED 2025",
-    subtitle = "Rede pública menos privada, por UF",
+    subtitle = "Rede pública menos rede privada, por UF",
     x = "UF",
-    y = "Diferenca na nota média"
-  )
+    y = "Diferença na nota média",
+    fill = "Rede com maior\nnota média",
+    caption = paste0(
+      "Valores positivos indicam média maior na rede pública; ",
+      "valores negativos indicam média maior na rede privada."
+    )
+  ) +
+  
+  tema_enamed()
 #Cursos agrupados por código de Curso , instiuição de ensino , e Estado .
 resumo_curso <- enamed %>%
   group_by(CO_CURSO, CO_IES, UF, rede) %>%
@@ -237,34 +265,19 @@ resumo_estado_rede_ies <- resumo_ies_uf %>%
 comparacao_estado_rede_ies <- resumo_estado_rede_ies %>%
   filter(rede %in% c("Pública", "Privada")) %>%
   select(UF, rede, media, n_ies) %>%
-  pivot_wider(
-    names_from = rede,
-    values_from = c(media, n_ies)
-  ) %>%
-  mutate(
-    diferenca = media_Pública - media_Privada
-  ) %>%
+  pivot_wider(names_from = rede, values_from = c(media, n_ies)) %>%
+  mutate(diferenca = media_Pública - media_Privada) %>%
   drop_na(diferenca) %>%
   arrange(desc(diferenca))
 
 
 # Comparação da diferença pública-privada por aluno e por IES
 comparacao_ponderacao_estado <- comparacao_estado_rede %>%
-  select(
-    UF,
-    diferenca_aluno = diferenca
-  ) %>%
+  select(UF, diferenca_aluno = diferenca) %>%
   inner_join(
     comparacao_estado_rede_ies %>%
-      select(
-        UF,
-        diferenca_ies = diferenca,
-        n_ies_Pública,
-        n_ies_Privada
-      ),
+      select(UF, diferenca_ies = diferenca, n_ies_Pública, n_ies_Privada),
     by = "UF",
     relationship = "one-to-one"
   ) %>%
-  mutate(
-    mudanca_ponderacao = diferenca_ies - diferenca_aluno
-  )
+  mutate(mudanca_ponderacao = diferenca_ies - diferenca_aluno)

@@ -5,6 +5,8 @@
 
 library(tidyverse)
 
+source("R/00_estilo_grafico.R")
+
 enamed  <- readRDS("dados/processados/enamed.rds")
 cadastro_ies <- readRDS("dados/processados/cadastro_ies.rds")
 
@@ -71,23 +73,43 @@ referencia_max_privada <- resumo_uf_rede_comparavel %>%
 
 comparacao_uf_rede %>%
   ggplot(aes(y = reorder(UF, diferenca_proficiencia))) +
+  
   geom_segment(
     aes(
       x = prop_proficientes_Privada,
       xend = prop_proficientes_Pública,
       yend = reorder(UF, diferenca_proficiencia)
     ),
+    color = cor_referencia,
     linewidth = 0.7,
     alpha = .6
   ) +
   
-  geom_vline(xintercept = referencia_max_privada,
-             linetype = "dashed",
-             linewidth = .7) +
+  geom_vline(
+    xintercept = referencia_max_privada,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
   
+  geom_point(
+    aes(
+      x = prop_proficientes_Privada,
+      color = "Privada"
+    ),
+    size = 2.8
+  ) +
   
-  geom_point(aes(x = prop_proficientes_Privada, color = "Privada")) +
-  geom_point(aes(x = prop_proficientes_Pública, color = "Pública")) +
+  geom_point(
+    aes(
+      x = prop_proficientes_Pública,
+      color = "Pública"
+    ),
+    size = 2.8
+  ) +
+  
+  scale_color_rede() +
+  
   scale_x_continuous(
     labels = scales::label_percent(1),
     breaks = seq(0, 1, .1),
@@ -96,17 +118,21 @@ comparacao_uf_rede %>%
   
   labs(
     title = "Proficiência dos concluintes por estado e rede",
-    subtitle = "Comparação entre redes pública e privada nas 25 UFs em que ambas estão presentes — ENAMED 2025",
+    subtitle = paste0(
+      "Comparação entre redes pública e privada nas 25 UFs ",
+      "em que ambas estão presentes — ENAMED 2025"
+    ),
     x = "Proporção de concluintes proficientes",
     y = "UF",
     color = "Rede",
     caption = paste0(
       "Proficiência definida como nota geral ≥ 60. ",
-      "Linha tracejada: maior proporção de proficiência observada na rede privada."
+      "Linha tracejada: maior proporção de proficiência ",
+      "observada na rede privada."
     )
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 
 # ----------------------------------------------------------------
 # Comparação entre ponderação por concluintes e peso igual por IES
@@ -232,22 +258,38 @@ ranking_ies_estado_down20 <- ranking_ies_estado %>%
 
 
 ranking_ies_estado_top20 %>%
-  ggplot(aes(
-    x = reorder(rotulo_ies, prop_proficientes),
-    ,
-    y = prop_proficientes,
-    fill = rede
-  )) +
-  geom_col() +
-  geom_text(aes(label = rotulo_proficiencia),
-            hjust = 1.05,
-            size = 3) +
+  ggplot(
+    aes(
+      x = reorder(rotulo_ies, prop_proficientes),
+      y = prop_proficientes,
+      fill = rede
+    )
+  ) +
+  
+  geom_col(
+    width = .72
+  ) +
+  
+  geom_text(
+    aes(label = rotulo_proficiencia),
+    hjust = 1.05,
+    size = 3
+  ) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .25),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .02))
+  ) +
+  
   coord_flip() +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
-                     limits = c(0, 1)) +
+  
   labs(
     title = paste0(
-      n_exibir,
+      nrow(ranking_ies_estado_top20),
       " IES com maior proporção de concluintes proficientes — ",
       uf_escolhida
     ),
@@ -257,24 +299,41 @@ ranking_ies_estado_top20 %>%
     fill = "Rede",
     caption = "Rótulos: proficientes / participantes válidos."
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 ranking_ies_estado_down20 %>%
-  ggplot(aes(
-    x = reorder(rotulo_ies, prop_nao_proficientes),
-    y = prop_nao_proficientes,
-    fill = rede
-  )) +
-  geom_col() +
-  geom_text(aes(label = rotulo_nao_proficiencia),
-            hjust = 1.05,
-            size = 3) +
+  ggplot(
+    aes(
+      x = reorder(rotulo_ies, prop_nao_proficientes),
+      y = prop_nao_proficientes,
+      fill = rede
+    )
+  ) +
+  
+  geom_col(
+    width = .72
+  ) +
+  
+  geom_text(
+    aes(label = rotulo_nao_proficiencia),
+    hjust = 1.05,
+    size = 3
+  ) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .25),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .02))
+  ) +
+  
   coord_flip() +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
-                     limits = c(0, 1)) +
+  
   labs(
     title = paste0(
-      n_exibir,
+      nrow(ranking_ies_estado_down20),
       " IES com maior proporção de concluintes abaixo do corte — ",
       uf_escolhida
     ),
@@ -284,4 +343,5 @@ ranking_ies_estado_down20 %>%
     fill = "Rede",
     caption = "Rótulos: abaixo do corte / participantes válidos."
   ) +
-  theme_minimal()
+  
+  tema_enamed()

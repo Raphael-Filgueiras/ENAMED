@@ -6,6 +6,8 @@ library(tidyverse)
 library(ggplot2)
 library(ggrepel)
 
+source("R/00_estilo_grafico.R")
+
 enamed <- readRDS("dados/processados/enamed.rds")
 
 ies_enamed_identificadas <- readRDS("dados/processados/ies_enamed_identificadas.rds")
@@ -38,23 +40,36 @@ distribuicao_brasil <- enamed_rede %>%
 # Distribuição nacional das notas por rede
 enamed_rede %>%
   ggplot(aes(x = NT_GER, color = rede, fill = rede)) +
-  geom_density(linewidth = 0.5, alpha = 0.35) +
+  
+  geom_density(linewidth = 1, alpha = .12) +
+  
+  scale_color_rede() +
+  scale_fill_rede() +
+  
   labs(
-    title = "Distribuição das Notas do ENAMED 2025",
+    title = "Distribuição das notas do ENAMED 2025",
     subtitle = "Comparação entre redes pública e privada",
-    x = "Nota Geral",
+    x = "Nota geral",
     y = "Densidade",
     color = "Rede",
     fill = "Rede"
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 
 # Distribuição nacional em números absolutos de alunos
 ggplot(enamed_rede, aes(x = NT_GER, fill = rede, color = rede)) +
-  geom_histogram(binwidth = 2,
-                 position = "identity",
-                 alpha = 0.35) +
+  
+  geom_histogram(
+    binwidth = 2,
+    position = "identity",
+    alpha = .25,
+    linewidth = .35
+  ) +
+  
+  scale_color_rede() +
+  scale_fill_rede() +
+  
   labs(
     title = "Distribuição das notas do ENAMED 2025",
     subtitle = "Número de participantes por faixa de nota",
@@ -63,8 +78,8 @@ ggplot(enamed_rede, aes(x = NT_GER, fill = rede, color = rede)) +
     fill = "Rede",
     color = "Rede"
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 # Pontos de corte nacionais para a cauda inferior
 cortes_baixo_desempenho <- enamed_rede %>%
   summarise(
@@ -131,14 +146,25 @@ comparacao_cortes_grafico <- comparacao_cortes_grafico %>%
 
 comparacao_cortes_grafico %>%
   ggplot(aes(x = percentil_referencia, y = proporcao, fill = rede)) +
-  geom_col(position = "dodge") +
-  geom_text(aes(label = scales::percent(proporcao, accuracy = 0.1)),
-            position = position_dodge(width = 0.9),
-            vjust = -0.3) +
-  facet_wrap( ~ rede_referencia, labeller = labeller(
+  
+  geom_col(position = position_dodge(width = .9), width = .72) +
+  
+  geom_text(
+    aes(label = scales::percent(proporcao, accuracy = .1)),
+    position = position_dodge(width = .9),
+    vjust = -.3,
+    size = 3
+  ) +
+  
+  facet_wrap(~ rede_referencia, labeller = labeller(
     rede_referencia = c("Privada" = "Referência: rede privada", "Pública" = "Referência: rede pública")
   )) +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
+                     expand = expansion(mult = c(0, .08))) +
+  
   labs(
     title = "Participantes abaixo dos percentis de referência",
     subtitle = "Comparação entre rede pública e privada no ENAMED 2025",
@@ -146,7 +172,8 @@ comparacao_cortes_grafico %>%
     y = "Proporção de participantes",
     fill = "Rede dos participantes"
   ) +
-  theme_minimal()
+  
+  tema_enamed()
 
 
 # ----------------------------------------------------------------
@@ -212,71 +239,127 @@ comparacao_redes_estado <- comparacao_redes_estado %>%
         "Ambas piores que a referência"
     )
   )
-ggplot(comparacao_redes_estado, aes(x = reorder(UF, diferenca_pp), y = diferenca_pp)) +
-  geom_col() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_text(aes(label = scales::percent(diferenca_pp, accuracy = 0.1)),
-            hjust = -0.1,
-            size = 3) +
+ggplot(comparacao_redes_estado,
+       aes(
+         x = reorder(UF, diferenca_pp),
+         y = diferenca_pp,
+         fill = if_else(diferenca_pp >= 0, "Privada", "Pública")
+       )) +
+  
+  geom_col(width = .72) +
+  
+  geom_hline(
+    yintercept = 0,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  geom_text(aes(
+    label = scales::percent(diferenca_pp, accuracy = .1),
+    hjust = if_else(diferenca_pp >= 0, -.1, 1.1)
+  ), size = 3) +
+  
   coord_flip() +
+  
+  scale_fill_rede() +
+  
   scale_y_continuous(labels = scales::label_percent(accuracy = 1),
-                     expand = expansion(mult = c(0, .12))) +
+                     expand = expansion(mult = c(.12, .12))) +
+  
   labs(
-    title = "Diferença de Proporção de baixo desempenho por estado",
-    subtitle = "Rede privada menos rede pública - corte no p10 nacional da rede pública",
+    title = "Diferença na proporção de participantes abaixo do P10 por estado",
+    subtitle = "Rede privada menos rede pública — corte no P10 nacional da rede pública",
     x = "UF",
-    y = "Diferença em pontos Percentuais",
-    caption = "Valores positivos indicam maior proporção de participantes da rede privada abaixo do P10 nacional da rede pública."
-  ) + theme_minimal()
+    y = "Diferença em pontos percentuais",
+    fill = "Maior proporção\nabaixo do corte",
+    caption = paste0(
+      "Valores positivos indicam maior proporção na rede privada; ",
+      "valores negativos indicam maior proporção na rede pública."
+    )
+  ) +
+  
+  tema_enamed()
 
 ggplot(
   comparacao_redes_estado,
   aes(x = prop_abaixo_p10_publica_Pública, y = prop_abaixo_p10_publica_Privada)
 ) +
-  geom_point(aes(color = situacao), size = 2) +
-  geom_label_repel(aes(label = UF),
-                   size = 3,
-                   min.segment.length = 0) +
-  geom_abline(intercept = 0,
-              slope = 1,
-              linetype = "dashed") +
-  geom_vline(xintercept = ref_p10_publica, linetype = "dashed") +
-  geom_hline(yintercept = ref_p10_privada, linetype = "dashed") +
-  scale_x_continuous(labels = scales::label_percent(accuracy = 1)) +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
-  coord_equal(xlim = c(0, 0.60), ylim = c(0, 0.60)) +
+  
+  geom_point(aes(color = situacao), size = 2.8, alpha = .85) +
+  
+  geom_label_repel(
+    aes(label = UF),
+    size = 3,
+    min.segment.length = 0,
+    show.legend = FALSE
+  ) +
+  
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = cor_referencia,
+    linewidth = .6
+  ) +
+  
+  geom_vline(
+    xintercept = ref_p10_publica,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .6
+  ) +
+  
+  geom_hline(
+    yintercept = ref_p10_privada,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .6
+  ) +
+  
+  scale_color_situacao_estado() +
+  
+  scale_x_continuous(labels = scales::label_percent(accuracy = 1),
+                     breaks = seq(0, .6, .1)) +
+  
+  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
+                     breaks = seq(0, .6, .1)) +
+  
+  coord_equal(xlim = c(0, .60), ylim = c(0, .60)) +
+  
   labs(
     title = "Participantes abaixo do P10 da rede pública nacional por UF",
     subtitle = paste(
       "Comparação das redes pública e privada com suas respectivas",
       "proporções nacionais, usando a mesma nota de corte"
     ),
-    x = "Rede Pública na UF \n(% abaixo da P10 público nacional)",
-    y = "Rede Privada na UF \n(% abaixo da P10 público nacional)",
-    color = "Desempenho em relação\nà referência nacional",
+    x = "Rede pública na UF\n(% abaixo do P10 público nacional)",
+    y = "Rede privada na UF\n(% abaixo do P10 público nacional)",
+    color = "Situação em relação\nà referência nacional",
     caption = paste(
       "Linha diagonal: igualdade entre as redes pública e privada na UF.",
-      "Linhas vertical e horizontal: referências nacionais das respectivas redes.",
+      "Linhas tracejadas: referências nacionais das respectivas redes.",
       "Menores proporções indicam menor concentração de participantes abaixo do corte."
     )
   ) +
+  
   annotate(
-    "label",
-    x = 0.43,
-    y = 0.455,
+    "text",
+    x = .43,
+    y = .455,
     label = "Pública melhor",
     angle = 45,
     size = 3,
-    linewidth = 0
+    color = cor_texto_secundario
   ) +
+  
   annotate(
-    "label",
-    x = 0.455,
-    y = 0.43,
+    "text",
+    x = .455,
+    y = .43,
     label = "Privada melhor",
     angle = 45,
     size = 3,
-    linewidth = 0
-  )+
-theme_minimal()
-
+    color = cor_texto_secundario
+  ) +
+  
+  tema_enamed()

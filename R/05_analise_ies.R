@@ -1,10 +1,21 @@
 
 
 
+
+
+
+
+
+
+
 # ================================================================
 # 05 - ANÁLISE POR INSTITUIÇÃO DE ENSINO SUPERIOR
 # ================================================================
 library(tidyverse)
+
+library(tidyverse)
+
+source("R/00_estilo_grafico.R")
 
 enamed <- readRDS("dados/processados/enamed.rds")
 
@@ -63,6 +74,10 @@ if (any(resumo_ies$n_proficientes +
   stop("ERRO: proficientes e não proficientes não somam o total de alunos.")
 }
 
+resumo_ies <- resumo_ies %>%
+  group_by(SG_IES) %>%
+  mutate(rotulo_ies = case_when(is.na(SG_IES) ~ NO_IES, n() > 1 ~ NO_IES, TRUE ~ SG_IES)) %>%
+  ungroup()
 
 resumo_proficiencia_brasil <- enamed_ies %>%
   summarise(
@@ -103,6 +118,7 @@ painel_ies <- resumo_ies %>%
     CO_IES,
     NO_IES,
     SG_IES,
+    rotulo_ies,
     rede,
     
     n_alunos,
@@ -174,6 +190,7 @@ painel_ies_reduzido <- painel_ies %>%
     CO_IES,
     NO_IES,
     SG_IES,
+    rotulo_ies,
     rede,
     n_alunos,
     n_cursos,
@@ -237,56 +254,100 @@ ies_destaque <- bind_rows(
 
 ranking_proficiencia_top20 %>%
   ggplot(aes(
-    x = reorder(SG_IES, prop_proficientes),
+    x = reorder(rotulo_ies, prop_proficientes),
     y = prop_proficientes,
     fill = rede
   )) +
-  geom_col() +
+  
+  geom_col(width = .72) +
+  
   geom_text(aes(label = rotulo_proficiencia),
             hjust = 1.05,
             size = 3) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .25),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .02))
+  ) +
+  
   coord_flip() +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+  
   labs(
     title = "20 IES com maior proporção de participantes proficientes",
     subtitle = "ENAMED 2025 — corte de proficiência: nota ≥ 60",
     x = "Instituição de Ensino Superior",
     y = "Proporção de participantes proficientes",
     fill = "Rede",
-    caption = "Entre parênteses: proficientes / participantes válidos."
+    caption = "Rótulos: proficientes / participantes válidos."
   ) +
-  theme_minimal()
+  
+  tema_enamed()
 
 ranking_proficiencia_down20 %>%
   ggplot(aes(
-    x = reorder(SG_IES, prop_nao_proficientes),
+    x = reorder(rotulo_ies, prop_nao_proficientes),
     y = prop_nao_proficientes,
     fill = rede
   )) +
-  geom_col() +
+  
+  geom_col(width = .72) +
+  
   geom_text(aes(label = rotulo_nao_proficiencia),
             hjust = 1.05,
             size = 3) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .25),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .02))
+  ) +
+  
   coord_flip() +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+  
   labs(
-    title = "20 IES com maior proporção de participantes não proficientes",
+    title = "20 IES com maior proporção de participantes abaixo do corte",
     subtitle = "ENAMED 2025 — corte de proficiência: nota ≥ 60",
     x = "Instituição de Ensino Superior",
-    y = "Proporção de participantes não proficientes",
+    y = "Proporção de participantes abaixo do corte",
     fill = "Rede",
-    caption = "Entre parênteses: não proficientes / participantes válidos."
+    caption = "Rótulos: abaixo do corte / participantes válidos."
   ) +
-  theme_minimal()
+  tema_enamed()
 
 painel_ies_reduzido %>%
   ggplot(aes(x = media, y = desvio_padrao)) +
-  geom_point(aes(size = n_alunos, color = rede), alpha = .7) +
-  geom_vline(xintercept = referencia_ies$mediana_media, linetype = "dashed") +
-  geom_hline(yintercept = referencia_ies$mediana_dp, linetype = "dashed") +
-  ggrepel::geom_text_repel(data = ies_destaque,
-                           aes(label = SG_IES),
-                           min.segment.length = 0) +
+  
+  geom_point(aes(size = n_alunos, color = rede), alpha = .6) +
+  
+  geom_vline(
+    xintercept = referencia_ies$mediana_media,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  geom_hline(
+    yintercept = referencia_ies$mediana_dp,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  ggrepel::geom_text_repel(
+    data = ies_destaque,
+    aes(label = rotulo_ies),
+    min.segment.length = 0,
+    show.legend = FALSE
+  ) +
+  
+  scale_color_rede() +
   
   labs(
     title = "Desempenho e heterogeneidade das IES no ENAMED 2025",
@@ -296,8 +357,8 @@ painel_ies_reduzido %>%
     color = "Rede",
     size = "Participantes válidos"
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 
 
 
@@ -330,20 +391,34 @@ resumo_quadrantes_rede <- painel_ies_quadrantes %>%
 
 resumo_quadrantes_rede %>%
   ggplot(aes(x = rede, y = prop, fill = quadrante)) +
-  geom_col() +
+  
+  geom_col(width = .72) +
+  
   geom_text(aes(label = scales::percent(prop, accuracy = .1)),
             position = position_stack(vjust = .5),
             size = 3) +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+  
+  scale_fill_quadrante() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .2),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .01))
+  ) +
+  
   labs(
     title = "Distribuição das IES nos quadrantes de desempenho",
-    subtitle = "Classificação relativa à mediana das médias e dos desvios-padrão das IES",
+    subtitle = paste0(
+      "Classificação relativa à mediana das médias e ",
+      "dos desvios-padrão das IES"
+    ),
     x = "Rede",
     y = "Proporção de IES",
     fill = "Quadrante"
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 
 # ----------------------------------------------------------------
 # Ranking das IES por número de participantes não proficientes
@@ -367,22 +442,36 @@ ranking_n_nao_proficientes_top20 <- ranking_n_nao_proficientes %>%
 
 ranking_n_nao_proficientes_top20 %>%
   ggplot(aes(
-    x = reorder(SG_IES, n_nao_proficientes),
+    x = reorder(rotulo_ies, n_nao_proficientes),
     y = n_nao_proficientes,
     fill = rede
   )) +
-  geom_col() +
+  
+  geom_col(width = .72) +
+  
   geom_text(aes(label = rotulo_nao_proficientes),
             hjust = 1.05,
             size = 3) +
+  
+  scale_fill_rede() +
+  
+  scale_y_continuous(expand = expansion(mult = c(0, .02))) +
+  
   coord_flip() +
+  
   labs(
-    title = "20 IES com maior número de participantes não proficientes",
+    title = "20 IES com maior número de participantes abaixo do corte",
     subtitle = "ENAMED 2025 — corte de proficiência: nota ≥ 60",
     x = "Instituição de Ensino Superior",
-    y = "Número de participantes não proficientes",
-    caption = "Rótulos: não proficientes / participantes válidos (proporção de não proficientes)."
-  )
+    y = "Número de participantes abaixo do corte",
+    fill = "Rede",
+    caption = paste0(
+      "Rótulos: participantes abaixo do corte / participantes válidos ",
+      "(proporção abaixo do corte)."
+    )
+  ) +
+  
+  tema_enamed()
 
 referencia_nao_proficiencia <- painel_ies_reduzido %>%
   summarise(
@@ -402,15 +491,40 @@ ies_destaque_nao_proficiencia <- bind_rows(
 
 painel_ies_reduzido %>%
   ggplot(aes(x = prop_nao_proficientes, y = n_nao_proficientes, color = rede)) +
-  geom_point(alpha = .7) +
-  geom_vline(xintercept =
-               referencia_nao_proficiencia$mediana_prop_nao_proficientes,
-             linetype = "dashed") +
-  geom_hline(yintercept =
-               referencia_nao_proficiencia$mediana_n_nao_proficientes,
-             linetype = "dashed") +
-  ggrepel::geom_text_repel(data = ies_destaque_nao_proficiencia, aes(label = SG_IES), show.legend = FALSE) +
-  scale_x_continuous(labels = scales::label_percent(accuracy = 1)) +
+  
+  geom_point(alpha = .7, size = 2.2) +
+  
+  geom_vline(
+    xintercept =
+      referencia_nao_proficiencia$mediana_prop_nao_proficientes,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  geom_hline(
+    yintercept =
+      referencia_nao_proficiencia$mediana_n_nao_proficientes,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  ggrepel::geom_text_repel(
+    data = ies_destaque_nao_proficiencia,
+    aes(label = rotulo_ies),
+    show.legend = FALSE,
+    min.segment.length = 0
+  ) +
+  
+  scale_color_rede() +
+  
+  scale_x_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .1),
+    limits = c(0, 1)
+  ) +
+  
   labs(
     title = "Frequência e número de concluintes abaixo do corte de proficiência",
     subtitle = "ENAMED 2025 — linhas tracejadas representam as medianas entre as IES",
@@ -418,7 +532,8 @@ painel_ies_reduzido %>%
     y = "Número de concluintes abaixo do corte de proficiência",
     color = "Rede"
   ) +
-  theme_minimal()
+  
+  tema_enamed()
 
 painel_ies_volume <- painel_ies_reduzido %>%
   mutate(
@@ -500,19 +615,27 @@ comparacao_concentracao <- resumo_volume_nao_proficiencia %>%
 
 comparacao_concentracao %>%
   ggplot(aes(x = grupo_rotulo, y = proporcao, fill = metrica)) +
-  geom_col(position = position_dodge(width = .9)) +
+  
+  geom_col(position = position_dodge(width = .9), width = .78) +
+  
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = .1)),
     position = position_dodge(width = .9),
     hjust = -.1,
     size = 3
   ) +
-  coord_flip() +
+  
+  scale_fill_concentracao() +
+  
   scale_y_continuous(
     labels = scales::label_percent(accuracy = 1),
     breaks = seq(0, .8, .2),
-    limits = c(0, .8)
+    limits = c(0, .8),
+    expand = expansion(mult = c(0, .02))
   ) +
+  
+  coord_flip() +
+  
   labs(
     title = "Onde se concentram os concluintes abaixo do corte de proficiência?",
     subtitle = "Participação das IES e dos concluintes abaixo do corte em cada grupo",
@@ -524,7 +647,8 @@ comparacao_concentracao %>%
       "alto número = ≥ 30 concluintes abaixo do corte."
     )
   ) +
-  theme_minimal()
+  
+  tema_enamed()
 # ----------------------------------------------------------------
 # Concentração dos concluintes abaixo do corte por rede
 # ----------------------------------------------------------------
@@ -597,15 +721,25 @@ comparacao_concentracao_rede <- resumo_concentracao_rede %>%
 
 comparacao_concentracao_rede %>%
   ggplot(aes(x = rede, y = proporcao, fill = metrica)) +
-  geom_col(position = position_dodge(width = .9)) +
+  
+  geom_col(position = position_dodge(width = .9), width = .72) +
+  
   geom_text(
     aes(label = scales::percent(proporcao, accuracy = .1)),
     position = position_dodge(width = .9),
     vjust = -.3,
     size = 3
   ) +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1),
-                     limits = c(0, 1)) +
+  
+  scale_fill_concentracao() +
+  
+  scale_y_continuous(
+    labels = scales::label_percent(accuracy = 1),
+    breaks = seq(0, 1, .2),
+    limits = c(0, 1),
+    expand = expansion(mult = c(0, .03))
+  ) +
+  
   labs(
     title = "Concentração dos concluintes abaixo do corte dentro de cada rede",
     subtitle = "IES com alta taxa e alto número de concluintes abaixo do corte",
@@ -617,8 +751,8 @@ comparacao_concentracao_rede %>%
       "alto número = ≥ 30 concluintes abaixo do corte."
     )
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 # ----------------------------------------------------------------
 # Concentração acumulada dos concluintes abaixo do corte
 # ----------------------------------------------------------------
@@ -651,13 +785,13 @@ pontos_concentracao <- tibble(alvo = c(.10, .20, .30, .50)) %>%
 # Comparação das distribuições de notas entre IES e uma rede
 # ----------------------------------------------------------------
 
-siglas_ies_escolhidas <- c("UFF", "USP")
+siglas_ies_escolhidas <- c("FSM", "UFF", "UERJ")
 
 # Preencher somente quando alguma sigla for ambígua.
 # Caso contrário, deixar c().
 codigos_desambiguacao <- c(UNESC = 1559)
 
-rede_referencia <- "Privada"
+rede_referencia <- "Pública"
 
 
 # Cadastro das IES disponíveis para seleção
@@ -794,26 +928,48 @@ pontos_corte_densidade <- dados_densidade_comparacao %>%
   summarise(prop_proficientes = mean(NT_GER >= 60),
             .groups = "drop")
 
+grupos_ies <- ies_escolhidas$grupo
+
+cores_ies_comparacao <- grDevices::hcl.colors(n = length(grupos_ies), palette = "Dark 3")
+
+names(cores_ies_comparacao) <- grupos_ies
+
+cores_comparacao <- c(cores_ies_comparacao,
+                      setNames(cor_referencia, rotulo_referencia))
+
 # As curvas de densidade são normalizadas para área total igual a 1.
 # A altura representa concentração relativa das notas,
 # e não o número absoluto de participantes.
 
 dados_densidade_comparacao %>%
   ggplot(aes(x = NT_GER, color = grupo)) +
+  
   stat_ecdf(aes(y = after_stat(1 - y)), linewidth = 1) +
-  geom_vline(xintercept = 60, linetype = "dashed") +
+  
+  geom_vline(
+    xintercept = 60,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
   geom_point(
     data = pontos_corte_densidade,
     aes(x = 60, y = prop_proficientes, color = grupo),
-    size = 2.5,
+    size = 2.8,
     show.legend = FALSE
   ) +
+  
+  scale_color_manual(values = cores_comparacao) +
+  
   scale_x_continuous(breaks = seq(20, 100, 10)) +
+  
   scale_y_continuous(
     labels = scales::label_percent(accuracy = 1),
     breaks = seq(0, 1, .10),
     limits = c(0, 1)
   ) +
+  
   labs(
     title = "Proporção de concluintes acima de cada nota",
     subtitle = paste0("Comparação com a rede ", rede_referencia, " — ENAMED 2025"),
@@ -822,16 +978,30 @@ dados_densidade_comparacao %>%
     color = NULL,
     caption = "Linha tracejada: corte de proficiência = 60."
   ) +
-  theme_minimal()
-
+  
+  tema_enamed()
 # As curvas de densidade são normalizadas para área total igual a 1.
 # A altura representa concentração relativa das notas,
 # e não o número absoluto de participantes.
 
 dados_densidade_comparacao %>%
   ggplot(aes(x = NT_GER, color = grupo, fill = grupo)) +
-  geom_density(alpha = .15, linewidth = 1) +
-  geom_vline(xintercept = 60, linetype = "dashed") +
+  
+  geom_density(alpha = .12, linewidth = 1) +
+  
+  geom_vline(
+    xintercept = 60,
+    color = cor_referencia,
+    linetype = "dashed",
+    linewidth = .7
+  ) +
+  
+  scale_color_manual(values = cores_comparacao) +
+  
+  scale_fill_manual(values = cores_comparacao) +
+  
+  scale_x_continuous(breaks = seq(20, 100, 10)) +
+  
   labs(
     title = "Distribuição das notas das IES selecionadas",
     subtitle = paste0("Comparação com a rede ", rede_referencia, " — ENAMED 2025"),
@@ -839,6 +1009,10 @@ dados_densidade_comparacao %>%
     y = "Densidade",
     color = NULL,
     fill = NULL,
-    caption = "Linha tracejada: corte de proficiência = 60."
+    caption = paste0(
+      "Curvas de densidade normalizadas para área total igual a 1. ",
+      "Linha tracejada: corte de proficiência = 60."
+    )
   ) +
-  theme_minimal()
+  
+  tema_enamed()
