@@ -38,7 +38,7 @@ distribuicao_brasil <- enamed_rede %>%
   )
 
 # Distribuição nacional das notas por rede
-enamed_rede %>%
+grafico_densidade_rede <- enamed_rede %>%
   ggplot(aes(x = NT_GER, color = rede, fill = rede)) +
   
   geom_density(linewidth = 1, alpha = .12) +
@@ -58,7 +58,7 @@ enamed_rede %>%
   tema_enamed()
 
 # Distribuição nacional em números absolutos de alunos
-ggplot(enamed_rede, aes(x = NT_GER, fill = rede, color = rede)) +
+grafico_histograma_rede <- ggplot(enamed_rede, aes(x = NT_GER, fill = rede, color = rede)) +
   
   geom_histogram(
     binwidth = 2,
@@ -144,7 +144,7 @@ comparacao_cortes_grafico <- comparacao_cortes_grafico %>%
     )
   )
 
-comparacao_cortes_grafico %>%
+grafico_percentis_rede <- comparacao_cortes_grafico %>%
   ggplot(aes(x = percentil_referencia, y = proporcao, fill = rede)) +
   
   geom_col(position = position_dodge(width = .9), width = .72) +
@@ -156,7 +156,7 @@ comparacao_cortes_grafico %>%
     size = 3
   ) +
   
-  facet_wrap(~ rede_referencia, labeller = labeller(
+  facet_wrap( ~ rede_referencia, labeller = labeller(
     rede_referencia = c("Privada" = "Referência: rede privada", "Pública" = "Referência: rede pública")
   )) +
   
@@ -239,12 +239,12 @@ comparacao_redes_estado <- comparacao_redes_estado %>%
         "Ambas piores que a referência"
     )
   )
-ggplot(comparacao_redes_estado,
-       aes(
-         x = reorder(UF, diferenca_pp),
-         y = diferenca_pp,
-         fill = if_else(diferenca_pp >= 0, "Privada", "Pública")
-       )) +
+grafico_diferenca_p10_estado <- ggplot(comparacao_redes_estado,
+                                       aes(
+                                         x = reorder(UF, diferenca_pp),
+                                         y = diferenca_pp,
+                                         fill = if_else(diferenca_pp >= 0, "Privada", "Pública")
+                                       )) +
   
   geom_col(width = .72) +
   
@@ -281,7 +281,7 @@ ggplot(comparacao_redes_estado,
   
   tema_enamed()
 
-ggplot(
+grafico_comparacao_estado_rede <- ggplot(
   comparacao_redes_estado,
   aes(x = prop_abaixo_p10_publica_Pública, y = prop_abaixo_p10_publica_Privada)
 ) +

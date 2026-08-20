@@ -61,8 +61,8 @@ comparacao_estado_rede <- comparacao_estado_rede %>%
   left_join(desvio_estado_rede, by = "UF", relationship = "one-to-one")
 
 
-#Gáfico de barras comparando a difernça entre as médias das Pulbicas e privadas.
-comparacao_estado_rede %>%
+# Gráfico de barras comparando a diferença entre as médias das redes pública e privada.
+grafico_diferenca_media_estado <- comparacao_estado_rede %>%
   ggplot(aes(
     x = reorder(UF, diferenca),
     y = diferenca,

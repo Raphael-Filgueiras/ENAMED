@@ -8,6 +8,7 @@
 
 
 
+
 # ================================================================
 # 05 - ANÁLISE POR INSTITUIÇÃO DE ENSINO SUPERIOR
 # ================================================================
@@ -252,7 +253,7 @@ ies_destaque <- bind_rows(
 ) %>%
   distinct(CO_IES, .keep_all = TRUE)
 
-ranking_proficiencia_top20 %>%
+grafico_top_ies_proficiencia <- ranking_proficiencia_top20 %>%
   ggplot(aes(
     x = reorder(rotulo_ies, prop_proficientes),
     y = prop_proficientes,
@@ -287,7 +288,7 @@ ranking_proficiencia_top20 %>%
   
   tema_enamed()
 
-ranking_proficiencia_down20 %>%
+grafico_bottom_ies_proficiencia <- ranking_proficiencia_down20 %>%
   ggplot(aes(
     x = reorder(rotulo_ies, prop_nao_proficientes),
     y = prop_nao_proficientes,
@@ -321,7 +322,7 @@ ranking_proficiencia_down20 %>%
   ) +
   tema_enamed()
 
-painel_ies_reduzido %>%
+grafico_media_dispersao_ies <- painel_ies_reduzido %>%
   ggplot(aes(x = media, y = desvio_padrao)) +
   
   geom_point(aes(size = n_alunos, color = rede), alpha = .6) +
@@ -389,7 +390,7 @@ resumo_quadrantes_rede <- painel_ies_quadrantes %>%
   mutate(prop = n / sum(n)) %>%
   ungroup()
 
-resumo_quadrantes_rede %>%
+grafico_quadrantes_ies <- resumo_quadrantes_rede %>%
   ggplot(aes(x = rede, y = prop, fill = quadrante)) +
   
   geom_col(width = .72) +
@@ -440,7 +441,7 @@ ranking_n_nao_proficientes <- resumo_ies %>%
 ranking_n_nao_proficientes_top20 <- ranking_n_nao_proficientes %>%
   slice_head(n = 20)
 
-ranking_n_nao_proficientes_top20 %>%
+grafico_ies_nao_proficientes_absoluto <- ranking_n_nao_proficientes_top20 %>%
   ggplot(aes(
     x = reorder(rotulo_ies, n_nao_proficientes),
     y = n_nao_proficientes,
@@ -489,7 +490,7 @@ ies_destaque_nao_proficiencia <- bind_rows(
 ) %>%
   distinct(CO_IES, .keep_all = TRUE)
 
-painel_ies_reduzido %>%
+grafico_prop_nao_proficientes_tamanho <- painel_ies_reduzido %>%
   ggplot(aes(x = prop_nao_proficientes, y = n_nao_proficientes, color = rede)) +
   
   geom_point(alpha = .7, size = 2.2) +
@@ -613,7 +614,7 @@ comparacao_concentracao <- resumo_volume_nao_proficiencia %>%
   )
 
 
-comparacao_concentracao %>%
+grafico_concentracao_nao_proficientes <- comparacao_concentracao %>%
   ggplot(aes(x = grupo_rotulo, y = proporcao, fill = metrica)) +
   
   geom_col(position = position_dodge(width = .9), width = .78) +
@@ -719,7 +720,7 @@ comparacao_concentracao_rede <- resumo_concentracao_rede %>%
     )
   )
 
-comparacao_concentracao_rede %>%
+grafico_concentracao_rede <- comparacao_concentracao_rede %>%
   ggplot(aes(x = rede, y = proporcao, fill = metrica)) +
   
   geom_col(position = position_dodge(width = .9), width = .72) +
@@ -914,7 +915,8 @@ dados_ies_escolhidas <- enamed_ies %>%
 # Dados da rede de referência
 
 dados_rede_referencia <- enamed_ies %>%
-  filter(rede == rede_referencia,!CO_IES %in% codigos_excluir_referencia) %>%
+  filter(rede == rede_referencia,
+         !CO_IES %in% codigos_excluir_referencia) %>%
   transmute(NT_GER, grupo = rotulo_referencia)
 
 
@@ -941,7 +943,7 @@ cores_comparacao <- c(cores_ies_comparacao,
 # A altura representa concentração relativa das notas,
 # e não o número absoluto de participantes.
 
-dados_densidade_comparacao %>%
+grafico_cdf_complementar_ies <- dados_densidade_comparacao %>%
   ggplot(aes(x = NT_GER, color = grupo)) +
   
   stat_ecdf(aes(y = after_stat(1 - y)), linewidth = 1) +
@@ -984,7 +986,7 @@ dados_densidade_comparacao %>%
 # A altura representa concentração relativa das notas,
 # e não o número absoluto de participantes.
 
-dados_densidade_comparacao %>%
+grafico_densidade_ies <- dados_densidade_comparacao %>%
   ggplot(aes(x = NT_GER, color = grupo, fill = grupo)) +
   
   geom_density(alpha = .12, linewidth = 1) +

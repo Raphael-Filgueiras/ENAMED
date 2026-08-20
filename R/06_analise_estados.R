@@ -71,7 +71,7 @@ referencia_max_privada <- resumo_uf_rede_comparavel %>%
   summarise(max_privada = max(prop_proficientes)) %>%
   pull(max_privada)
 
-comparacao_uf_rede %>%
+grafico_proficiencia_rede_estado <- comparacao_uf_rede %>%
   ggplot(aes(y = reorder(UF, diferenca_proficiencia))) +
   
   geom_segment(
@@ -92,21 +92,9 @@ comparacao_uf_rede %>%
     linewidth = .7
   ) +
   
-  geom_point(
-    aes(
-      x = prop_proficientes_Privada,
-      color = "Privada"
-    ),
-    size = 2.8
-  ) +
+  geom_point(aes(x = prop_proficientes_Privada, color = "Privada"), size = 2.8) +
   
-  geom_point(
-    aes(
-      x = prop_proficientes_Pública,
-      color = "Pública"
-    ),
-    size = 2.8
-  ) +
+  geom_point(aes(x = prop_proficientes_Pública, color = "Pública"), size = 2.8) +
   
   scale_color_rede() +
   
@@ -257,24 +245,18 @@ ranking_ies_estado_down20 <- ranking_ies_estado %>%
   )
 
 
-ranking_ies_estado_top20 %>%
-  ggplot(
-    aes(
-      x = reorder(rotulo_ies, prop_proficientes),
-      y = prop_proficientes,
-      fill = rede
-    )
-  ) +
+grafico_top_ies_estado <- ranking_ies_estado_top20 %>%
+  ggplot(aes(
+    x = reorder(rotulo_ies, prop_proficientes),
+    y = prop_proficientes,
+    fill = rede
+  )) +
   
-  geom_col(
-    width = .72
-  ) +
+  geom_col(width = .72) +
   
-  geom_text(
-    aes(label = rotulo_proficiencia),
-    hjust = 1.05,
-    size = 3
-  ) +
+  geom_text(aes(label = rotulo_proficiencia),
+            hjust = 1.05,
+            size = 3) +
   
   scale_fill_rede() +
   
@@ -301,24 +283,18 @@ ranking_ies_estado_top20 %>%
   ) +
   
   tema_enamed()
-ranking_ies_estado_down20 %>%
-  ggplot(
-    aes(
-      x = reorder(rotulo_ies, prop_nao_proficientes),
-      y = prop_nao_proficientes,
-      fill = rede
-    )
-  ) +
+grafico_bottom_ies_estado <- ranking_ies_estado_down20 %>%
+  ggplot(aes(
+    x = reorder(rotulo_ies, prop_nao_proficientes),
+    y = prop_nao_proficientes,
+    fill = rede
+  )) +
   
-  geom_col(
-    width = .72
-  ) +
+  geom_col(width = .72) +
   
-  geom_text(
-    aes(label = rotulo_nao_proficiencia),
-    hjust = 1.05,
-    size = 3
-  ) +
+  geom_text(aes(label = rotulo_nao_proficiencia),
+            hjust = 1.05,
+            size = 3) +
   
   scale_fill_rede() +
   
