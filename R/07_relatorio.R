@@ -39,6 +39,50 @@ n_participantes <- nrow(enamed)
 
 n_participantes_fmt <- formata_inteiro(n_participantes)
 
+# ----------------------------------------------------------------
+# Número de instituições
+# ----------------------------------------------------------------
+
+n_ies <-
+  dplyr::n_distinct(
+    enamed$CO_IES,
+    na.rm = TRUE
+  )
+
+n_ies_fmt <-
+  formata_inteiro(n_ies)
+
+# ----------------------------------------------------------------
+# Número de instituições por rede
+# ----------------------------------------------------------------
+
+n_ies_publicas <-
+  resumo_ies %>%
+  distinct(CO_IES, rede) %>%
+  filter(rede == "Pública") %>%
+  nrow()
+
+n_ies_privadas <-
+  resumo_ies %>%
+  distinct(CO_IES, rede) %>%
+  filter(rede == "Privada") %>%
+  nrow()
+
+n_ies_especiais <-
+  resumo_ies %>%
+  distinct(CO_IES, rede) %>%
+  filter(rede == "Especial") %>%
+  nrow()
+
+n_ies_publicas_fmt <-
+  formata_inteiro(n_ies_publicas)
+
+n_ies_privadas_fmt <-
+  formata_inteiro(n_ies_privadas)
+
+n_ies_especiais_fmt <-
+  formata_inteiro(n_ies_especiais)
+
 
 # ----------------------------------------------------------------
 # Notas médias por rede

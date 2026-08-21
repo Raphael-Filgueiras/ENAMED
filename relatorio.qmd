@@ -1,0 +1,354 @@
+---
+title: "Análise do ENAMED 2025"
+author: "Raphael Filgueiras"
+format: html
+lang: pt-BR
+---
+
+# Introdução
+
+Este relatório apresenta uma análise dos resultados do ENAMED 2025.
+
+O Exame Nacional de Avaliação da Formação Médica (ENAMED) avalia o desempenho
+dos estudantes de medicina e produz indicadores destinados à avaliação da
+formação oferecida pelos cursos. A partir da edição de 2025, foi estabelecida
+a nota de 60 pontos como referência mínima de proficiência no exame.[^enamed-prof]
+
+Neste relatório, são analisadas a distribuição das notas e as diferenças de desempenho entre as redes de ensino em diferentes níveis de agregação: nacionalmente, dentro de cada estado e, de forma mais detalhada, entre os cursos de Medicina e as instituições de ensino superior.
+
+[^enamed-prof]: O Inep estabelece 60 pontos como nota mínima de referência para aprovação no ENAMED. A utilização do exame como certificação obrigatória de proficiência para o exercício profissional decorre de alteração normativa posterior à edição de 2025 e não deve ser aplicada retrospectivamente aos participantes analisados neste relatório.
+
+```{r}
+#| include: false
+
+options(OutDec = ",")
+library(knitr)
+source("R/01_importacao.R")
+source("R/03_identificacao_ies.R")
+source("R/02_analise_descritiva.R")
+source("R/04_analise_distribuicao.R")
+source("R/05_analise_ies.R")
+source("R/06_analise_estados.R")
+source("R/07_relatorio.R")
+```
+
+
+# Panorama nacional
+## Distribuição das notas
+
+A @fig-densidade-rede apresenta a distribuição das notas do ENAMED 2025 segundo a rede de ensino.
+
+Foram analisados `r n_participantes_fmt` participantes com resultado válido no exame, distribuídos entre `r n_ies_fmt` instituições de ensino superior, das quais `r n_ies_publicas_fmt` pertencem à rede pública, `r n_ies_privadas_fmt` à rede privada e `r n_ies_especiais_fmt` à rede especial.[^categoria-especial]
+
+[^categoria-especial]: A categoria administrativa Especial reúne instituições criadas por lei estadual ou municipal, existentes na data da promulgação da Constituição de 1988, que não são total ou preponderantemente mantidas com recursos públicos e, portanto, não são gratuitas.
+
+
+
+
+
+```{r}
+#| echo: false
+#| label: fig-densidade-rede
+#| fig-cap: "Distribuição das notas do ENAMED 2025 por rede de ensino."
+
+grafico_densidade_rede
+```
+
+A @fig-histograma-rede apresenta a mesma distribuição em números absolutos, mostrando a quantidade de participantes em cada faixa de nota para cada rede de ensino.
+
+```{r}
+#| echo: false
+#| label: fig-histograma-rede
+#| fig-cap: "Número de participantes por faixa de nota no ENAMED 2025, segundo a rede de ensino."
+
+grafico_histograma_rede
+```
+## Resumo por rede de ensino
+
+A @tbl-resumo-rede apresenta as principais estatísticas descritivas das notas por rede de ensino.
+
+```{r}
+#| label: tbl-resumo-rede
+#| tbl-cap: "Resumo estatístico das notas do ENAMED 2025 por rede de ensino."
+#| echo: false
+
+knitr::kable(
+  resumo_rede,
+  col.names = c(
+    "Rede",
+    "Participantes",
+    "Nota média",
+    "Mediana",
+    "1º quartil",
+    "3º quartil",
+    "Desvio-padrão",
+    "Mínimo",
+    "Máximo"
+  ),
+  digits = c(NA, 0, 1, 1, 1, 1, 1, 1, 1),
+  format.args = list(
+    big.mark = "."
+  ),
+  align = c("l", rep("r", 8))
+)
+```
+A rede pública apresentou nota média de `r media_publica_fmt`,
+enquanto a rede privada apresentou média de `r media_privada_fmt`.
+
+## Proficiência nacional
+
+A @tbl-proficiencia-nacional apresenta a proporção de participantes que atingiu o nível de proficiência do ENAMED.
+
+```{r}
+#| label: tbl-proficiencia-nacional
+#| tbl-cap: "Proficiência no ENAMED 2025 no Brasil."
+#| echo: false
+resumo_proficiencia_brasil %>% 
+  mutate(
+    prop_proficientes=100*prop_proficientes,
+    prop_nao_proficientes=100*prop_nao_proficientes
+    ) %>% 
+  kable(
+    col.names = c(
+      "Participantes",
+      "Proficientes",
+      "Proficientes (%)",
+      "Abaixo do corte",
+      "Abaixo do corte (%)"
+    ),
+    digits = c(0,0,1,0,1),
+    format.args = list(big.mark="."),
+    align = c(rep("r",5))
+  )
+  
+```
+Em nível nacional, observou-se que
+`r prof_nacional_pct_fmt`% dos participantes
+atingiram o nível de proficiência estabelecido para o ENAMED, enquanto
+`r abaixo_corte_nacional_pct_fmt`%
+ficaram abaixo desse nível.
+
+## Proficiência por rede de ensino 
+A @tbl-proficiencia-rede apresenta a proporção de participantes que atingiu o nível de proficiência do ENAMED,
+em cada rede de ensino. 
+
+```{r}
+#| label: tbl-proficiencia-rede
+#| tbl-cap: "Proficiência no ENAMED 2025 por rede de ensino."
+#| echo: false
+
+resumo_proficiencia_rede %>% 
+  mutate(
+    prop_proficientes=prop_proficientes*100,
+    prop_nao_proficientes=prop_nao_proficientes*100
+    ) %>% 
+  kable(
+    col.names = c(
+      "Rede",
+      "Participantes",
+      "Proficientes",
+      "Proficientes (%)",
+      "Abaixo do corte",
+      "Abaixo do corte (%)"
+    ),
+    digits = c(NA,0,0,1,0,1),
+    format.args = list(big.mark="."),
+    align = c("l",rep("r",5))
+  )
+
+```
+A rede pública apresentou 
+`r prof_publica_pct_fmt`
+% de participantes proficientes, ante 
+`r prof_privada_pct_fmt`
+% na rede privada e 
+`r prof_especial_pct_fmt`
+% na rede especial.[^comparacao-descritiva]
+
+[^comparacao-descritiva]: As diferenças observadas entre as redes são descritivas e não demonstram, 
+isoladamente, que a natureza administrativa da instituição seja a causa das diferenças de desempenho.
+
+
+
+
+## Comparação dos concluintes de menor desempenho entre as redes
+A @fig-percentis-rede compara a proporção de participantes das redes pública e privada abaixo de diferentes limites de desempenho, utilizando alternadamente cada uma das redes como referência.
+
+Quando a rede privada é utilizada como referência, uma proporção menor de participantes da rede pública encontra-se abaixo dos mesmos limites de nota. Quando a rede pública é utilizada como referência, uma proporção maior de participantes da rede privada encontra-se abaixo dos limites correspondentes.
+
+```{r}
+#| echo: false
+#| label: fig-percentis-rede
+#| fig-cap: "Proporção de participantes abaixo dos percentis de referência nas redes pública e privada."
+
+grafico_percentis_rede
+```
+
+# Comparação das redes de ensino entre os estados
+## Diferença de desempenho entre as redes de ensino
+
+A @fig-diferenca-da-media-uf apresenta, para cada estado, a diferença entre a nota média dos participantes da rede pública e a nota média dos participantes da rede privada.
+[^ufs-comparaveis]
+
+```{r}
+#| echo: false
+#| label: fig-diferenca-da-media-uf
+#| fig-cap: "Diferença entre as notas médias das redes pública e privada, por estado."
+
+grafico_diferenca_media_estado
+```
+[^ufs-comparaveis]: A comparação considera apenas os estados para os quais há participantes válidos nas duas redes de ensino.
+
+
+## Proficiência dos concluintes por estado
+A @fig-proficiencia-rede-estado compara, em cada unidade da Federação, a proporção de concluintes que atingiu o nível de proficiência no ENAMED 2025 nas redes pública e privada.
+
+A ligação entre os dois pontos permite visualizar diretamente a diferença entre as redes dentro de cada estado. A linha tracejada representa a maior proporção de concluintes proficientes observada na rede privada entre as unidades da Federação.
+
+```{r}
+#| echo: false
+#| label: fig-proficiencia-rede-estado
+#| fig-cap: "Proporção de concluintes proficientes nas redes pública e privada, por unidade da Federação."
+grafico_proficiencia_rede_estado
+```
+
+
+## Comparação da proporção de concluintes de menor desempenho
+Nesta análise, utiliza-se como limite de baixo desempenho a nota correspondente aproximadamente aos 10% menores resultados da rede pública nacional.[^percentil10]
+
+[^percentil10]: Em termos estatísticos, o limite que separa os 10% menores resultados corresponde ao 10º percentil (P10) da distribuição de referência.
+
+A @fig-comparacao-estado-rede mostra como os estados se posicionam quanto à proporção de participantes de menor desempenho nas redes pública e privada.
+
+Para estabelecer uma referência comum de comparação, foi utilizado como limite de baixo desempenho o valor correspondente aproximadamente aos 10% menores resultados da rede pública nacional. O mesmo limite de nota é então aplicado à rede privada, permitindo comparar a proporção de participantes de cada rede situada abaixo desse valor.
+
+A linha vertical representa, portanto, a referência nacional de 10% para a rede pública, enquanto a linha horizontal representa a proporção nacional correspondente na rede privada, obtida pela aplicação do mesmo limite de nota.
+
+A linha diagonal representa situações em que as duas redes apresentam a mesma proporção de participantes de menor desempenho dentro do estado. Acima da diagonal estão os estados em que essa proporção é maior na rede privada do que na pública, indicando melhor desempenho relativo da rede pública. Abaixo da diagonal ocorre o oposto.
+
+```{r}
+#| echo: false
+#| label: fig-comparacao-estado-rede
+#| fig-cap: "Comparação do desempenho das redes pública e privada por estado."
+grafico_comparacao_estado_rede
+```
+```{r}
+#| echo: false
+#| label: fig-diferenca-prop-p10-uf
+#| fig-cap: "Diferença entre as proporções de participantes abaixo do limite dos 10% menores resultados nacionais, por estado."
+
+grafico_diferenca_p10_estado
+```
+
+
+
+# Análise das instituições de ensino superior
+
+## Instituições com maior proporção de concluintes proficientes
+
+A análise é agora desagregada por instituição de ensino superior. A @fig-top-ies-proficiencia apresenta as instituições com maior proporção de concluintes que atingiram o nível de proficiência no ENAMED 2025.[^agregacao-ies]
+
+```{r}
+#| echo: false
+#| label: fig-top-ies-proficiencia
+#| fig-cap: "Instituições com maior proporção de concluintes proficientes no ENAMED 2025."
+
+grafico_top_ies_proficiencia
+```
+
+## Instituições com maior proporção de concluintes abaixo do corte
+
+A @fig-bottom-ies-proficiencia apresenta as instituições com maior proporção de concluintes que não atingiram o nível de proficiência estabelecido para o ENAMED 2025.
+
+```{r}
+#| echo: false
+#| label: fig-bottom-ies-proficiencia
+#| fig-cap: "Instituições com maior proporção de concluintes abaixo do corte de proficiência no ENAMED 2025."
+
+grafico_bottom_ies_proficiencia
+```
+
+[^agregacao-ies]: A agregação por instituição de ensino superior utilizada nesta análise é própria deste relatório e não corresponde ao cálculo oficial do Conceito Enade Medicina, realizado pelo Inep no nível do curso.
+
+## Desempenho médio e dispersão das notas por instituição
+
+Os rankings anteriores analisam as instituições a partir da proporção de concluintes acima ou abaixo do corte de proficiência. A @fig-media-dispersao-ies acrescenta outra dimensão à análise, comparando a nota média dos participantes de cada instituição com a dispersão de seus resultados.[^dispersao-ies]
+
+Instituições localizadas mais à direita apresentam maiores notas médias, enquanto posições mais altas no gráfico indicam maior variação entre as notas de seus participantes.
+
+```{r}
+#| echo: false
+#| label: fig-media-dispersao-ies
+#| fig-cap: "Nota média e dispersão das notas dos concluintes por instituição de ensino superior."
+
+grafico_media_dispersao_ies
+```
+
+[^dispersao-ies]: A dispersão é medida pelo desvio-padrão das notas. Valores maiores indicam maior variabilidade dos resultados entre os participantes da instituição.
+
+## Distribuição das IES nos quadrantes de desempenho
+
+A @fig-quadrantes-ies apresenta a distribuição das instituições de cada rede de ensino em quatro grupos, definidos pela combinação entre a nota média e a dispersão das notas de seus concluintes.
+
+A classificação é relativa ao conjunto das IES analisadas: as instituições são separadas conforme sua nota média esteja acima ou abaixo da mediana das médias e seu desvio-padrão esteja acima ou abaixo da mediana dos desvios-padrão.[^quadrantes-ies]
+
+```{r}
+#| echo: false
+#| label: fig-quadrantes-ies
+#| fig-cap: "Distribuição das IES nos quadrantes de desempenho, segundo a rede de ensino."
+
+grafico_quadrantes_ies
+```
+Observa-se uma diferença na distribuição das instituições entre as redes. Na rede pública, a maior parte das IES encontra-se nos grupos de média acima da mediana, enquanto, na rede privada, há maior concentração nos grupos de média abaixo da mediana.
+
+[^quadrantes-ies]: Os termos "acima" e "abaixo" representam posições relativas às medianas observadas entre as IES e não limites absolutos de qualidade ou desempenho.
+
+## Número de concluintes abaixo do corte de proficiência por instituição
+
+A @fig-ies-nao-proficientes-absoluto apresenta as instituições com maior número absoluto de concluintes que não atingiram o nível de proficiência estabelecido para o ENAMED 2025.
+
+Esse indicador complementa a análise por proporções, pois instituições com grande número de participantes podem concentrar uma quantidade elevada de concluintes abaixo do corte mesmo quando sua proporção não está entre as maiores.
+
+```{r}
+#| echo: false
+#| label: fig-ies-nao-proficientes-absoluto
+#| fig-cap: "Instituições com maior número absoluto de concluintes abaixo do corte de proficiência no ENAMED 2025."
+
+grafico_ies_nao_proficientes_absoluto
+```
+
+
+## Proporção e número de concluintes abaixo do corte de proficiência
+
+A @fig-prop-nao-proficientes-tamanho relaciona duas medidas de baixo desempenho em cada instituição: o número absoluto de concluintes abaixo do corte de proficiência e a proporção que esse grupo representa entre os participantes válidos da IES.
+
+Dessa forma, o gráfico permite identificar tanto instituições que concentram um grande número absoluto de concluintes abaixo do corte quanto aquelas em que esses concluintes representam uma parcela elevada dos participantes avaliados.
+
+```{r}
+#| echo: false
+#| label: fig-prop-nao-proficientes-tamanho
+#| fig-cap: "Proporção de concluintes abaixo do corte de proficiência em relação ao número absoluto de concluintes abaixo do corte, por instituição."
+
+grafico_prop_nao_proficientes_tamanho
+```
+## Concentração dos concluintes abaixo do corte por rede de ensino
+
+A @fig-concentracao-rede analisa, em cada rede de ensino, a concentração dos concluintes abaixo do corte de proficiência nas instituições que apresentam simultaneamente alta taxa e alto número absoluto de participantes abaixo do corte.[^criterio-concentracao]
+
+As barras mostram, para cada rede, a parcela das IES que pertence a esse grupo e a parcela dos concluintes abaixo do corte que essas instituições concentram.
+
+```{r}
+#| echo: false
+#| label: fig-concentracao-rede
+#| fig-cap: "Concentração dos concluintes abaixo do corte em IES com alta taxa e alto número de concluintes abaixo do corte, por rede de ensino."
+
+grafico_concentracao_rede
+```
+
+Observa-se um padrão distinto de concentração entre as redes. Na rede pública, apenas `r prop_ies_grupo_publica_pct_fmt`% das IES atendem simultaneamente aos critérios de alta taxa e alto número de concluintes abaixo do corte, mas concentram `r prop_concluintes_grupo_publica_pct_fmt`% desses participantes.
+
+Na rede privada, `r prop_ies_grupo_privada_pct_fmt`% das instituições pertencem a esse grupo e concentram `r prop_concluintes_grupo_privada_pct_fmt`% dos concluintes abaixo do corte. Na rede especial, essas proporções correspondem, respectivamente, a `r prop_ies_grupo_especial_pct_fmt`% e `r prop_concluintes_grupo_especial_pct_fmt`%.
+
+Os resultados indicam, portanto, que na rede pública os casos que combinam elevada proporção e elevado número absoluto de concluintes abaixo do corte estão concentrados em uma parcela relativamente pequena das instituições, enquanto nas redes privada e especial esse padrão encontra-se distribuído por uma parcela maior das IES.
+
+[^criterio-concentracao]: Nesta análise, considera-se alta taxa uma proporção de pelo menos 28,6% dos participantes da IES abaixo do corte de proficiência e alto número a presença de pelo menos 30 concluintes abaixo do corte. Esses limites são critérios analíticos adotados neste relatório e não correspondem a uma classificação oficial do Inep.
