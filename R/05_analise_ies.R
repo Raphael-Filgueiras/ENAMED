@@ -9,6 +9,7 @@
 
 
 
+
 # ================================================================
 # 05 - ANÁLISE POR INSTITUIÇÃO DE ENSINO SUPERIOR
 # ================================================================
@@ -77,7 +78,11 @@ if (any(resumo_ies$n_proficientes +
 
 resumo_ies <- resumo_ies %>%
   group_by(SG_IES) %>%
-  mutate(rotulo_ies = case_when(is.na(SG_IES) ~ NO_IES, n() > 1 ~ NO_IES, TRUE ~ SG_IES)) %>%
+  mutate(rotulo_ies = case_when(
+    is.na(SG_IES) ~ NO_IES,
+    n() > 1 ~ paste0(SG_IES, " (", CO_IES, ")"),
+    TRUE ~ SG_IES
+  )) %>%
   ungroup()
 
 resumo_proficiencia_brasil <- enamed_ies %>%
@@ -915,8 +920,7 @@ dados_ies_escolhidas <- enamed_ies %>%
 # Dados da rede de referência
 
 dados_rede_referencia <- enamed_ies %>%
-  filter(rede == rede_referencia,
-         !CO_IES %in% codigos_excluir_referencia) %>%
+  filter(rede == rede_referencia,!CO_IES %in% codigos_excluir_referencia) %>%
   transmute(NT_GER, grupo = rotulo_referencia)
 
 
