@@ -197,6 +197,7 @@ prop_concluintes_grupo_especial <-
   pull(proporcao)
 
 
+
 # ----------------------------------------------------------------
 # Valores formatados
 # ----------------------------------------------------------------
@@ -218,3 +219,57 @@ prop_ies_grupo_especial_pct_fmt <-
 
 prop_concluintes_grupo_especial_pct_fmt <-
   formata_decimal(100 * prop_concluintes_grupo_especial)
+
+# ----------------------------------------------------------------
+# Comparação da cauda inferior entre as redes
+# ----------------------------------------------------------------
+
+limite_p10_publica <-
+  quantile(
+    enamed$NT_GER[
+      enamed$rede == "Pública"
+    ],
+    probs = 0.10,
+    na.rm = TRUE,
+    names = FALSE
+  )
+
+prop_p10_publica <-
+  mean(
+    enamed$NT_GER[
+      enamed$rede == "Pública"
+    ] <= limite_p10_publica,
+    na.rm = TRUE
+  )
+
+prop_p10_privada <-
+  mean(
+    enamed$NT_GER[
+      enamed$rede == "Privada"
+    ] <= limite_p10_publica,
+    na.rm = TRUE
+  )
+
+razao_p10_privada_publica <-
+  prop_p10_privada /
+  prop_p10_publica
+
+
+# ----------------------------------------------------------------
+# Valores formatados
+# ----------------------------------------------------------------
+
+prop_p10_publica_pct_fmt <-
+  formata_decimal(
+    100 * prop_p10_publica
+  )
+
+prop_p10_privada_pct_fmt <-
+  formata_decimal(
+    100 * prop_p10_privada
+  )
+
+razao_p10_privada_publica_fmt <-
+  formata_decimal(
+    razao_p10_privada_publica
+  )

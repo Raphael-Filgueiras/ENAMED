@@ -292,7 +292,8 @@ grafico_comparacao_estado_rede <- ggplot(
     aes(label = UF),
     size = 3,
     min.segment.length = 0,
-    show.legend = FALSE
+    show.legend = FALSE,
+    max.overlaps = Inf
   ) +
   
   geom_abline(
