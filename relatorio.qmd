@@ -1,8 +1,12 @@
 ---
 title: "Análise do ENAMED 2025"
 author: "Raphael Filgueiras"
-format: html
+format:
+  html:
+    embed-resources: true
+    css: styles.css
 lang: pt-BR
+bibliography: referencias.bib
 ---
 
 # Introdução
@@ -11,12 +15,12 @@ Este relatório apresenta uma análise dos resultados do ENAMED 2025.
 
 O Exame Nacional de Avaliação da Formação Médica (ENAMED) avalia o desempenho
 dos estudantes de medicina e produz indicadores destinados à avaliação da
-formação oferecida pelos cursos. A partir da edição de 2025, foi estabelecida
-a nota de 60 pontos como referência mínima de proficiência no exame.[^enamed-prof]
+formação oferecida pelos cursos. A partir da edição de 2025,**foi estabelecida**
+**a nota de 60 pontos como referência mínima de proficiência** no exame.[^enamed-prof]
 
 Neste relatório, são analisadas a distribuição das notas e as diferenças de desempenho entre as redes de ensino em diferentes níveis de agregação: nacionalmente, dentro de cada estado e, de forma mais detalhada, entre os cursos de Medicina e as instituições de ensino superior.
 
-[^enamed-prof]: O Inep estabelece 60 pontos como nota mínima de referência para aprovação no ENAMED. A utilização do exame como certificação obrigatória de proficiência para o exercício profissional decorre de alteração normativa posterior à edição de 2025 e não deve ser aplicada retrospectivamente aos participantes analisados neste relatório.
+[^enamed-prof]: O Inep estabelece 60 pontos como nota mínima de referência para aprovação no ENAMED [@inep-enamed-faq]. A utilização do exame como certificação obrigatória de proficiência para o exercício profissional decorre de alteração normativa posterior à edição de 2025 e não deve ser aplicada retrospectivamente aos participantes analisados neste relatório.
 
 ```{r}
 #| include: false
@@ -38,7 +42,9 @@ source("R/07_relatorio.R")
 
 A @fig-densidade-rede apresenta a distribuição das notas do ENAMED 2025 segundo a rede de ensino.
 
-Foram analisados `r n_participantes_fmt` participantes com resultado válido no exame, distribuídos entre `r n_ies_fmt` instituições de ensino superior, das quais `r n_ies_publicas_fmt` pertencem à rede pública, `r n_ies_privadas_fmt` à rede privada e `r n_ies_especiais_fmt` à rede especial.[^categoria-especial]
+Foram analisados `r n_participantes_fmt` participantes com resultado válido no exame, distribuídos entre `r n_ies_fmt` instituições de ensino superior, das quais `r n_ies_publicas_fmt` pertencem à rede pública, `r n_ies_privadas_fmt` à rede privada e `r n_ies_especiais_fmt` à rede especial.[^fonte-dados][^categoria-especial]
+
+[^fonte-dados]: Os resultados dos participantes são provenientes dos Microdados do ENAMED 2025 disponibilizados pelo Inep [@inep-enamed-microdados-2025]. A identificação e as informações cadastrais das instituições foram complementadas com os Microdados do Censo da Educação Superior 2024 [@inep-censo-superior-2024].
 
 [^categoria-especial]: A categoria administrativa Especial reúne instituições criadas por lei estadual ou municipal, existentes na data da promulgação da Constituição de 1988, que não são total ou preponderantemente mantidas com recursos públicos e, portanto, não são gratuitas.
 
@@ -123,9 +129,9 @@ resumo_proficiencia_brasil %>%
   
 ```
 Em nível nacional, observou-se que
-`r prof_nacional_pct_fmt`% dos participantes
+**`r prof_nacional_pct_fmt`%** dos participantes
 atingiram o nível de proficiência estabelecido para o ENAMED, enquanto
-`r abaixo_corte_nacional_pct_fmt`%
+**`r abaixo_corte_nacional_pct_fmt`%**
 ficaram abaixo desse nível.
 
 ## Proficiência por rede de ensino 
@@ -158,12 +164,12 @@ resumo_proficiencia_rede %>%
 
 ```
 A rede pública apresentou 
-`r prof_publica_pct_fmt`
-% de participantes proficientes, ante 
-`r prof_privada_pct_fmt`
-% na rede privada e 
-`r prof_especial_pct_fmt`
-% na rede especial.[^comparacao-descritiva]
+**`r prof_publica_pct_fmt`**
+**%** de participantes proficientes, ante 
+**`r prof_privada_pct_fmt`**
+**%** na rede privada e 
+**`r prof_especial_pct_fmt`**
+**%** na rede especial.[^comparacao-descritiva]
 
 [^comparacao-descritiva]: As diferenças observadas entre as redes são descritivas e não demonstram, 
 isoladamente, que a natureza administrativa da instituição seja a causa das diferenças de desempenho.
@@ -174,7 +180,7 @@ isoladamente, que a natureza administrativa da instituição seja a causa das di
 ## Comparação dos concluintes de menor desempenho entre as redes
 A @fig-percentis-rede compara a proporção de participantes das redes pública e privada abaixo de diferentes limites de desempenho, utilizando alternadamente cada uma das redes como referência.
 
-Quando a rede privada é utilizada como referência, uma proporção menor de participantes da rede pública encontra-se abaixo dos mesmos limites de nota. Quando a rede pública é utilizada como referência, uma proporção maior de participantes da rede privada encontra-se abaixo dos limites correspondentes.
+Quando a rede privada é utilizada como referência, uma proporção menor de participantes da rede pública encontra-se abaixo dos mesmos limites de nota. **Quando a rede pública é utilizada como referência, uma proporção maior de participantes da rede privada encontra-se abaixo dos limites** **correspondentes.**
 
 ```{r}
 #| echo: false
@@ -224,7 +230,7 @@ Para estabelecer uma referência comum de comparação, foi utilizado como limit
 
 A linha vertical representa, portanto, a referência nacional de 10% para a rede pública, enquanto a linha horizontal representa a proporção nacional correspondente na rede privada, obtida pela aplicação do mesmo limite de nota.
 
-A linha diagonal representa situações em que as duas redes apresentam a mesma proporção de participantes de menor desempenho dentro do estado. Acima da diagonal estão os estados em que essa proporção é maior na rede privada do que na pública, indicando melhor desempenho relativo da rede pública. Abaixo da diagonal ocorre o oposto.
+A linha diagonal representa situações em que as duas redes apresentam a mesma proporção de participantes de menor desempenho dentro do estado. **Acima da diagonal estão os estados em que essa proporção é maior na rede privada do que na pública, indicando melhor desempenho relativo da** **rede pública. Abaixo da diagonal ocorre o oposto.**
 
 ```{r}
 #| echo: false
@@ -246,7 +252,7 @@ grafico_diferenca_p10_estado
 
 ## Instituições com maior proporção de concluintes proficientes
 
-A análise é agora desagregada por instituição de ensino superior. A @fig-top-ies-proficiencia apresenta as instituições com maior proporção de concluintes que atingiram o nível de proficiência no ENAMED 2025.[^agregacao-ies]
+A análise é agora desagregada por instituição de ensino superior. A @fig-top-ies-proficiencia apresenta as **instituições com maior proporção de concluintes que atingiram o nível de proficiência no ENAMED 2025**.[^agregacao-ies]
 
 ```{r}
 #| echo: false
@@ -258,7 +264,7 @@ grafico_top_ies_proficiencia
 
 ## Instituições com maior proporção de concluintes abaixo do corte
 
-A @fig-bottom-ies-proficiencia apresenta as instituições com maior proporção de concluintes que não atingiram o nível de proficiência estabelecido para o ENAMED 2025.
+A @fig-bottom-ies-proficiencia apresenta as instituições com maior proporção de concluintes **que não atingiram o nível de proficiência estabelecido para o ENAMED 2025**
 
 ```{r}
 #| echo: false
@@ -268,7 +274,7 @@ A @fig-bottom-ies-proficiencia apresenta as instituições com maior proporção
 grafico_bottom_ies_proficiencia
 ```
 
-[^agregacao-ies]: A agregação por instituição de ensino superior utilizada nesta análise é própria deste relatório e não corresponde ao cálculo oficial do Conceito Enade Medicina, realizado pelo Inep no nível do curso.
+[^agregacao-ies]: A agregação por instituição de ensino superior utilizada nesta análise é própria deste relatório e não corresponde ao cálculo oficial do Conceito Enade Medicina, realizado pelo Inep no nível do curso [@inep-nota-tecnica-40-2025].
 
 ## Desempenho médio e dispersão das notas por instituição
 
@@ -307,7 +313,7 @@ Observa-se uma diferença na distribuição das instituições entre as redes. N
 
 A @fig-ies-nao-proficientes-absoluto apresenta as instituições com maior número absoluto de concluintes que não atingiram o nível de proficiência estabelecido para o ENAMED 2025.
 
-Esse indicador complementa a análise por proporções, pois instituições com grande número de participantes podem concentrar uma quantidade elevada de concluintes abaixo do corte mesmo quando sua proporção não está entre as maiores.
+Esse indicador complementa a análise por proporções, **pois instituições com grande número de participantes podem concentrar uma quantidade elevada de concluintes abaixo do corte mesmo quando sua proporção não está entre as maiores**.
 
 ```{r}
 #| echo: false
@@ -345,10 +351,49 @@ As barras mostram, para cada rede, a parcela das IES que pertence a esse grupo e
 grafico_concentracao_rede
 ```
 
-Observa-se um padrão distinto de concentração entre as redes. Na rede pública, apenas `r prop_ies_grupo_publica_pct_fmt`% das IES atendem simultaneamente aos critérios de alta taxa e alto número de concluintes abaixo do corte, mas concentram `r prop_concluintes_grupo_publica_pct_fmt`% desses participantes.
+Observa-se um padrão distinto de concentração entre as redes. **Na rede pública, apenas `r prop_ies_grupo_publica_pct_fmt`% das IES atendem simultaneamente aos critérios de alta taxa e alto número de concluintes abaixo do corte, mas concentram `r prop_concluintes_grupo_publica_pct_fmt`% desses participantes.**
 
 Na rede privada, `r prop_ies_grupo_privada_pct_fmt`% das instituições pertencem a esse grupo e concentram `r prop_concluintes_grupo_privada_pct_fmt`% dos concluintes abaixo do corte. Na rede especial, essas proporções correspondem, respectivamente, a `r prop_ies_grupo_especial_pct_fmt`% e `r prop_concluintes_grupo_especial_pct_fmt`%.
 
 Os resultados indicam, portanto, que na rede pública os casos que combinam elevada proporção e elevado número absoluto de concluintes abaixo do corte estão concentrados em uma parcela relativamente pequena das instituições, enquanto nas redes privada e especial esse padrão encontra-se distribuído por uma parcela maior das IES.
 
 [^criterio-concentracao]: Nesta análise, considera-se alta taxa uma proporção de pelo menos 28,6% dos participantes da IES abaixo do corte de proficiência e alto número a presença de pelo menos 30 concluintes abaixo do corte. Esses limites são critérios analíticos adotados neste relatório e não correspondem a uma classificação oficial do Inep.
+
+# Conclusão
+
+Conforme pode ser observado na @fig-densidade-rede, a distribuição das notas da rede pública encontra-se deslocada para valores mais altos em relação à distribuição da rede privada. Além disso, observa-se maior concentração de participantes da rede privada na cauda inferior da distribuição, indicando maior proporção de concluintes com notas mais baixas nessa rede. A diferença nas medidas centrais das distribuições também é evidenciada na @tbl-proficiencia-rede.
+
+Caso a futura exigência de certificação de proficiência vinculada ao ENAMED estivesse vigente para os concluintes analisados nesta edição, `r abaixo_corte_nacional_pct_fmt`% deles não atingiriam o requisito mínimo de proficiência estabelecido para o exame, conforme apresentado na @tbl-proficiencia-nacional. Esse resultado deve ser interpretado como um exercício hipotético, uma vez que essa exigência não se aplica retrospectivamente aos participantes do ENAMED 2025[@inep-enamed-faq].
+
+A @tbl-proficiencia-rede traz um resultado particularmente relevante: enquanto `r prof_publica_pct_fmt`% dos concluintes da rede pública atingiram o nível de proficiência, esse percentual foi de `r prof_privada_pct_fmt`% na rede privada, evidenciando uma diferença expressiva entre as duas redes.
+
+A @fig-percentis-rede permite observar que o limite de nota definido a partir da cauda inferior da distribuição da rede pública engloba `r prop_p10_publica_pct_fmt`% de seus concluintes. Quando esse mesmo limite é aplicado à rede privada, `r prop_p10_privada_pct_fmt`% de seus concluintes encontram-se abaixo dele. Dessa forma, para um mesmo limite de desempenho, a proporção de concluintes de menor desempenho na rede privada é aproximadamente `r razao_p10_privada_publica_fmt` vezes a observada na rede pública.
+
+A @fig-proficiencia-rede-estado, além de evidenciar as diferenças de proficiência entre as redes pública e privada em cada unidade da Federação, **mostra que a maior proporção de concluintes proficientes observada na rede privada entre os estados é superada pela rede pública em grande parte das unidades da Federação, o que pode ser visualizado pelos pontos situados à direita da linha tracejada.** Esse resultado mostra que a diferença nacional entre as redes não decorre apenas de um pequeno número de estados isolados, embora sua magnitude varie entre as unidades da Federação.
+
+O ranking apresentado na @fig-top-ies-proficiencia revela que, entre as instituições com as maiores proporções de concluintes proficientes, predominam IES pertencentes à rede pública. Entretanto, também aparecem em destaque instituições privadas e especiais, demonstrando que a natureza administrativa, isoladamente, não determina o desempenho observado no ENAMED. Há, portanto, heterogeneidade relevante entre instituições pertencentes a uma mesma rede de ensino.
+
+O padrão inverso aparece na @fig-bottom-ies-proficiencia, que apresenta as instituições com as maiores proporções de concluintes abaixo do corte de proficiência. Nesse grupo, predominam instituições da rede privada. Ainda assim, a presença de instituições de diferentes categorias administrativas reforça que os resultados não devem ser interpretados exclusivamente a partir da classificação pública ou privada da IES.
+
+A @fig-prop-nao-proficientes-tamanho revela outro aspecto relevante: no quadrante superior direito encontram-se instituições que combinam elevada proporção de concluintes abaixo do corte com elevado número absoluto de participantes nessa condição. Essas instituições merecem atenção especial, pois reúnem simultaneamente elevada frequência relativa e elevado impacto absoluto de resultados abaixo do nível de proficiência.
+
+A @fig-concentracao-rede mostra que esse fenômeno apresenta padrões distintos entre as redes. Na rede pública, apenas `r prop_ies_grupo_publica_pct_fmt`% das IES atendem simultaneamente aos critérios de alta taxa e alto número de concluintes abaixo do corte, mas concentram `r prop_concluintes_grupo_publica_pct_fmt`% desses participantes. Na rede privada, `r prop_ies_grupo_privada_pct_fmt`% das instituições pertencem a esse grupo e concentram `r prop_concluintes_grupo_privada_pct_fmt`% dos concluintes abaixo do corte. Na rede especial, essas proporções correspondem, respectivamente, a `r prop_ies_grupo_especial_pct_fmt`% e `r prop_concluintes_grupo_especial_pct_fmt`%. Assim, enquanto na rede pública os casos de maior impacto estão concentrados em uma parcela relativamente pequena das instituições, nas redes privada e especial esse padrão encontra-se disseminado por uma parcela substancialmente maior das IES.
+
+Em conjunto, as análises apontam **desempenho agregado superior da rede pública no ENAMED 2025**, observado por diferentes perspectivas: distribuição das notas, proficiência, comportamento da parte inferior da distribuição e desempenho das instituições. Ao mesmo tempo, a heterogeneidade encontrada dentro de cada rede mostra que esses resultados não devem ser utilizados para atribuir causalmente o desempenho à natureza administrativa das instituições.
+
+Por fim, os resultados devem ser interpretados dentro do escopo do próprio ENAMED. O exame avalia competências e habilidades definidas para a formação médica e constitui uma medida objetiva do desempenho dos concluintes nessas competências. Nesse contexto, a elevada proporção de concluintes abaixo do corte de proficiência representa um resultado relevante e preocupante: esses participantes concluíram sua formação médica sem atingir o nível mínimo de proficiência estabelecido pelo ENAMED nas competências avaliadas.
+
+::: {.callout-important}
+Esse resultado não deve ser tratado exclusivamente como uma deficiência individual do estudante. Quando uma instituição apresenta, de forma consistente, elevada proporção e elevado número de concluintes abaixo do nível mínimo de proficiência, o resultado também constitui um indicador relevante sobre a formação oferecida. Instituições com desempenho persistentemente insatisfatório devem ser objeto de avaliação, acompanhamento e medidas efetivas de melhoria da qualidade do ensino e, quando essas deficiências não forem corrigidas, de medidas regulatórias compatíveis com a gravidade e a persistência dos resultados.
+:::
+
+## Fonte dos dados
+
+A análise utiliza como fonte principal os Microdados do ENAMED 2025, disponibilizados pelo Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (Inep) [@inep-enamed-microdados-2025].
+
+A identificação nominal e as informações cadastrais das instituições de ensino superior foram complementadas a partir dos Microdados do Censo da Educação Superior 2024, também disponibilizados pelo Inep [@inep-censo-superior-2024].
+
+# Referências
+
+::: {#refs}
+:::
